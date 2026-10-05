@@ -2,161 +2,178 @@
 
 <h1 align="center">Time Bar</h1>
 
-<p align="center">Geri sayım, kronometre, mesai saati ve pomodoro, hepsi menü çubuğunda.</p>
+<p align="center">Menü çubuğunda yaşayan, sağ tıkla yönetilen bir zaman sayacı.<br>Geri sayım · Kronometre · Mesai · Pomodoro</p>
 
-<p align="center">Kurmak için Terminal'e yapıştır:</p>
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/omerfarukgzr/time-bar/main/install.sh | bash
-```
+<p align="center"><a href="https://github.com/omerfarukgzr/time-bar/releases/latest/download/TimeBar.zip"><b>⬇ TimeBar.zip</b></a> · macOS 14+ · Apple Silicon ve Intel</p>
 
 ---
 
-Bir ad yaz, süreyi seç, başlat. Sayaç menü çubuğunda modun ikonuyla birlikte görünür. Sağ tık menü açmaz, o anki durumun tersine geçer: mesaideysen çalışma ile mola arasında, diğer modlarda duraklat ile devam et arasında. Böylece masadan kalkarken tek tıkla molaya geçersin, gün sonunda da 8 saati nasıl kullandığını görürsün.
+Çoğu zamanlayıcı süreyi tutar ama günün nasıl geçtiğini anlatmaz. Time Bar'ın çıkış noktası satranç saati: masaya oturunca bir taraf, kalkınca diğer taraf işler. Akşam baktığında "8 saatin 6 saat 40 dakikası çalışma, 1 saat 20 dakikası mola, en uzun kesintisiz çalışmam 2 saat 10 dakika" gibi bir özet görürsün.
 
-## Özellikler
+Bunun yanında klasik bir geri sayım, bir kronometre ve bir pomodoro da var. Hepsi aynı yerden, menü çubuğundaki tek bir ikondan yönetilir.
 
-- **Geri sayım:** Süre dolunca bildirim ve ses gelir, menü çubuğu kırmızı yanıp söner. Son dakikada süre turuncuya döner. Bildirimden ya da panelden **+5 dk** ile uzatırsın.
-- **Kronometre:** Sıfırdan yukarı sayar, duraklatılabilir.
-- **Mesai:** Satranç saati gibi çalışır. Çalışırken bir taraf, molada diğer taraf işler. Menü çubuğunda çalışırken çanta, moladayken fincan görünür. Mesai bitince özet çıkar: ne kadar çalıştın, ne kadar mola verdin, kaç mola, en uzun kesintisiz çalışma.
-- **Pomodoro:** Odak ve mola aralıklarını sırayla sayar, belirli sayıda odaktan sonra uzun mola verir. Sonraki aşama kendiliğinden başlayabilir ya da senin başlatmanı bekler.
-- **Sağ tık ve kısayol:** Sağ tık o anki durumun tersine geçer. Sayaç yokken ikonu görünen modu başlatır. Ayarlar'dan istediğin tuşu kısayol olarak atarsın, sağ tıkla aynı işi yapar.
-- **Geçmiş:** Ayarlar › Geçmiş'te haftalık grafik, haftanın özeti ve her mesainin molaları. Tek tıkla CSV olarak Excel'e aktarılır.
-- **Modlar:** Hangi modların panelde görüneceğini ve her birinin ayrıntılı ayarlarını Ayarlar › Modlar'dan seçersin.
-- **Menü çubuğu:** Süreyi ya da adı gizleyebilirsin, o zaman sadece modun ikonu kalır. Süre `1:05:00` ya da `1 sa 5 dk` biçiminde görünür.
-- **Ekran kilidi:** İstersen Mac kilitlenince ya da uyuyunca mesai kendiliğinden molaya geçer, açınca çalışmaya döner.
-- **Kaymaz:** Süreler bitiş saatinden hesaplanır. Mac uykuya geçse ya da uygulama kapanıp açılsa da sayaç kaldığı yerden devam eder.
-- **Tek tıkla güncelleme:** Yeni sürüm çıkınca panelde görünür, **Güncelle**'ye basınca kendini günceller.
-- Veri toplamaz, analitik kullanmaz.
+## Bir gün Time Bar ile
 
-## Gereksinimler
+> **08:55** Menü çubuğunda çanta ikonu var. Sağ tıklıyorsun, mesai başlıyor. Varsayılan hedef 8 saat.
+>
+> **10:40** Kahve için kalkıyorsun, yine sağ tık. İkon fincana dönüyor, saat molayı saymaya başlıyor.
+>
+> **10:55** Döndün, sağ tık. Çanta geri geldi, çalışma süresi kaldığı yerden devam ediyor.
+>
+> **12:30** Öğle yemeğine çıkarken tuşa basmayı unuttun. Ama "ekran kilitlenince molaya geç" açık olduğu için Mac kilitlenince mola kendiliğinden başladı. Kilidi açınca da çalışmaya döndü.
+>
+> **17:00** 8 saat doldu, bildirim geliyor. Paneli açıp **Mesaiyi bitir** diyorsun. Günün özeti çıkıyor ve geçmişe yazılıyor.
+>
+> **21:00** Okumak için Pomodoro sekmesine geçiyorsun. İkon domatese dönüyor. Sağ tık: 25 dakika odak, ardından 5 dakika mola, dört turda bir uzun mola.
 
-- macOS 14 veya üstü (Apple Silicon ve Intel)
+## Modlar
+
+| | Ne yapar | Menü çubuğunda | Sağ tık |
+|---|---|---|---|
+| **Geri sayım** | Seçtiğin süreden geriye sayar. | Zamanlayıcı ikonu ve kalan süre. Son dakikada turuncu, bitince kırmızı "Bitti". | Duraklat / devam et. Bittiyse kapatır. |
+| **Kronometre** | Sıfırdan yukarı sayar. | Kronometre ikonu ve geçen süre. | Duraklat / devam et. |
+| **Mesai** | Çalışma ve molayı ayrı ayrı sayar. | Çalışırken çanta ve toplam çalışma, moladayken fincan ve bu molanın süresi. | Çalışma ↔ mola. |
+| **Pomodoro** | Odak ve molaları sırayla, kendiliğinden sayar. | Odakta domates, molada fincan; aşamanın kalan süresi. | Duraklat / devam et. |
+
+Sayaç çalışmıyorken sağ tık, menü çubuğunda ikonu görünen modu **Ayarlar › Modlar**'daki varsayılan süreyle başlatır. İkon, panelde en son hangi modu seçtiysen onu gösterir. Sol tık her zaman paneli açar. Panelden ad verip süre seçebilir, sayacı bitirebilir, geri sayıma **+5 dk** ekleyebilir ya da pomodoroda bir aşamayı atlayabilirsin.
+
+Ayarlar'dan bir **kısayol tuşu** atarsan sağ tıkla aynı işi klavyeden yaparsın. Kısayol için erişilebilirlik izni gerekmez.
+
+Aynı anda tek bir sayaç çalışır. Yenisini başlatmak için öncekini bitirmen gerekir.
+
+## Ayarlar
+
+Ayarlar penceresi sekmelere ayrılmış:
+
+- **Genel:** Mac açılınca başlat, Dock'ta göster ve diğer sayfalara kısayollar.
+- **Modlar:** Hangi modların panelde görüneceği ve her modun ayrıntıları: geri sayımın varsayılan süresi; mesainin varsayılan hedefi ve ekran kilidi davranışı; pomodoronun odak, kısa mola, uzun mola süreleri, uzun molanın kaç odakta bir geleceği ve sonraki aşamanın kendiliğinden başlayıp başlamayacağı.
+- **Menü Çubuğu:** Süreyi ve adı göster ya da gizle, süre biçimi (`1:05:00` veya `1 sa 5 dk`), son dakikada turuncu uyarı. Değişiklikleri sayfanın üstündeki önizlemede anında görürsün.
+- **Kısayol:** Başlat/durdur tuşunu kaydet. Seçtiğin tuş başka yerde kullanılıyorsa uyarır, kaydetmez.
+- **Bildirimler:** Bitiş sesi ve bildirim izninin durumu.
+- **Geçmiş:** Aşağıda anlatılıyor.
+- **Hakkında:** Sürüm, güncelleme kontrolü ve kaynak kodu.
+
+## Geçmiş
+
+Biten her sayaç, hangi modda olursa olsun geçmişe yazılır. **Ayarlar › Geçmiş** sayfasında hafta hafta gezersin:
+
+- **Tümü** seçiliyken grafik, günlere göre her modda ne kadar zaman geçirdiğini renkli olarak gösterir. Bir mod seçince o modun çalışma (ya da odak) ve mola süreleri ayrılır.
+- Grafiğin altında haftanın özeti var. Özet seçtiğin moda göre değişir: mesaide mola oranı, pomodoroda biten odak sayısı, geri sayımda kaçının sonuna kadar tamamlandığı gibi.
+- Her kaydın kartında zaman şeridi var. "Ayrıntılar"ı açınca molalar saatleriyle tek tek listelenir.
+- Sağ üstteki menüden bütün geçmişi **CSV** olarak kaydedebilirsin. Dosya Excel'de Türkçe karakterler bozulmadan açılır.
+
+Birkaç kural:
+
+- 10 saniyeden kısa denemeler kaydedilmez.
+- 5 saniyeden kısa yanlış basışlar özete girmez. Örneğin yanlışlıkla molaya geçip hemen geri döndüysen, o iki çalışma bloğu tek blok sayılır.
+- Bir sayacı **Baştan başlat** dersen yarıda kalan hali de kaydedilir.
+- Tek tek kayıt silinebilir. Silmek için iki kez basman gerekir.
 
 ## Kurulum
 
-### Kolay yol: Terminal ile kurmak
-
-**Terminal** uygulamasını aç (Spotlight'ta "Terminal" yaz), şu satırı yapıştırıp Enter'a bas:
+**Terminal ile (önerilen).** Şu satırı Terminal'e yapıştır:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/omerfarukgzr/time-bar/main/install.sh | bash
 ```
 
-Komut son sürümü GitHub'dan indirir, SHA-256 özetini doğrular, Uygulamalar klasörüne kurar ve açar. macOS'un "doğrulanamadı" uyarısı çıkmaz. Aynı komut eski bir kurulumu da günceller. Ne yaptığını görmek istersen: [install.sh](install.sh)
+Komut son sürümü GitHub'dan indirir, dosyanın SHA-256 özetini GitHub'ın verdiği özetle karşılaştırır, uyuşmazsa hiçbir şey kurmaz. Uyuşursa uygulamayı Uygulamalar klasörüne koyar ve açar. Bu yolla macOS'un "doğrulanamadı" uyarısı çıkmaz. Aynı komut sonradan çalıştırılırsa eski kurulumun üzerine son sürümü kurar. Ne yaptığını önce görmek istersen: [install.sh](install.sh)
 
-### Terminal kullanmadan: zip ile kurmak
+**Elle.** [TimeBar.zip](https://github.com/omerfarukgzr/time-bar/releases/latest/download/TimeBar.zip)'i indir, aç ve çıkan `Time Bar.app`'i **Uygulamalar** klasörüne taşı. İndirilenler'den çalıştırma, yoksa uygulama kendini güncelleyemez. İlk açılışta macOS uygulamanın doğrulanamadığını söyler, çünkü ücretli Apple sertifikasıyla imzalı değil:
 
-**1.** **[TimeBar.zip](https://github.com/omerfarukgzr/time-bar/releases/latest/download/TimeBar.zip)** dosyasını indir ve Finder'da **İndirilenler** klasörünü aç. Orada sadece `TimeBar.zip` vardır, ona çift tıkla. Safari kullanıyorsan zip kendiliğinden açılmış olabilir, o zaman 2. adıma geç.
+1. Uyarıda **Bitti**'ye bas. "Çöp Sepeti'ne Taşı"ya basma.
+2. **Sistem Ayarları › Gizlilik ve Güvenlik**'i aç, en alta kaydır.
+3. Time Bar'ın engellendiğini söyleyen satırda **Yine de Aç**'a bas, parolanla onayla.
 
-<p align="center"><img src="docs/install-1-zip.svg" width="620" alt="İndirilenler klasöründe sadece TimeBar.zip var; ona çift tıkla"></p>
+Bunu bir kez yaparsın. Sonraki güncellemelerde uyarı çıkmaz.
 
-**2.** Zip açılınca yanında `Time Bar.app` çıkar. Onu sol taraftaki **Uygulamalar**'ın üzerine sürükleyip bırak.
+## Güncellemeler
 
-<p align="center"><img src="docs/install-2-drag.svg" width="620" alt="Zip açılınca çıkan Time Bar.app dosyasını soldaki Uygulamalar'a sürükle"></p>
+Time Bar günde bir kez GitHub'a "son sürüm hangisi?" diye sorar. Yeni sürüm varsa panelin en üstünde **Yeni sürüm var** satırı, menü çubuğu ikonunda da küçük bir nokta çıkar. **Güncelle**'ye bastığında olanlar sırasıyla şunlar:
 
-> Uygulamayı İndirilenler'den açma, mutlaka Uygulamalar'a taşı. Yoksa tek tıkla güncelleme çalışmaz. Repo sayfasındaki yeşil **Code › Download ZIP** butonu da uygulamayı değil kaynak kodu indirir, onu kullanma.
+1. Yeni sürümün zip dosyası sadece `github.com` üzerinden indirilir.
+2. Dosyanın SHA-256 özeti, GitHub'ın o dosya için yayınladığı özetle karşılaştırılır. GitHub özet vermediyse otomatik kurulum yapılmaz, Releases sayfası açılır. Özet uyuşmazsa kurulum durur ve panelde **İndir** butonu çıkar.
+3. Zip'ten çıkan uygulamanın gerçekten Time Bar olduğu (paket kimliği) ve şu ankinden yeni olduğu kontrol edilir. Eski bir sürüme geri dönülmez.
+4. Eski uygulama yenisiyle değiştirilir ve Time Bar yeniden açılır.
 
-**3.** Uygulamalar klasöründe **Time Bar**'a çift tıkla. Uygulama Apple'a kayıtlı ücretli bir sertifikayla imzalanmadığı için macOS ilk açılışta bu uyarıyı gösterir. **Bitti**'ye bas. "Çöp Sepeti'ne Taşı"ya basma, uygulamayı siler.
+**Güncellemede hiçbir verin silinmez.** Güncelleme sadece `Time Bar.app` dosyasını değiştirir. Verilerin uygulamanın dışında durur:
 
-<p align="center"><img src="docs/install-3-warning.svg" width="600" alt="“Time Bar.app Açılmadı” uyarısında Bitti'ye bas"></p>
-
-**4.** Sol üstteki Apple menüsünden **Sistem Ayarları**'nı aç ve soldan **Gizlilik ve Güvenlik**'i seç.
-
-<p align="center"><img src="docs/install-4-settings.svg" width="640" alt="Sistem Ayarları'nda soldan Gizlilik ve Güvenlik'i seç, sağ tarafı en alta kaydır"></p>
-
-**5.** Sağ tarafı en alta, **Güvenlik** başlığına kadar kaydır. "“Time Bar.app”, Mac'inizi korumak için engellendi." satırının yanındaki **Yine de Aç**'a bas.
-
-<p align="center"><img src="docs/install-5-settings-bottom.svg" width="640" alt="Gizlilik ve Güvenlik sayfasının en altında, Time Bar.app engellendi satırındaki Yine de Aç'a bas"></p>
-
-**6.** macOS Mac parolanı ya da Touch ID'yi ister, onayla. Bir pencere daha çıkarsa orada da **Yine de Aç**'a bas.
-
-Bunu sadece ilk kurulumda yaparsın. Sonraki güncellemeler panelden tek tıkla olur ve bu uyarı bir daha çıkmaz.
-
-İki yolda da kurulum bitince menü çubuğunda Time Bar ikonu görünür.
-
-## Kullanım
-
-| Ne | Nasıl |
+| Ne | Nerede |
 |---|---|
-| Yeni sayaç | Menü çubuğundaki ikona **sol tıkla**, modu seç, ad ve süre gir, **Başlat**. |
-| Hızlı başlat | Sayaç yokken ikona **sağ tıkla**. İkonu görünen mod, Ayarlar › Modlar'daki varsayılan süreyle başlar. |
-| Molaya geç / çalışmaya dön | Mesaideyken **sağ tıkla** ya da kısayola bas. |
-| Duraklat / devam et | Geri sayım, kronometre ve pomodoroda **sağ tıkla** ya da kısayola bas. |
-| Bitir, +5 dk, aşamayı atla | Sol tıkla açılan panelden. |
-| Ayarlar, Çık | Panelin altından. |
+| Ayarlar ve o an süren sayaç | `~/Library/Preferences/io.github.omerfarukgzr.timebar.plist` |
+| Geçmiş | `~/Library/Application Support/Time Bar/history.json` |
 
-## Güncelleme
+Süren bir sayaç varken güncellersen, uygulama yeniden açıldığında sayaç kaldığı yerden devam eder. Aradan geçen birkaç saniye de sayılmış olur. Güncelleme kontrolünü **Ayarlar › Hakkında**'dan kapatabilir ya da **Şimdi denetle** ile hemen yaptırabilirsin.
 
-Time Bar günde bir kez GitHub'daki son sürüme bakar. Yeni sürüm varsa panelin en üstünde **"Yeni sürüm var"** satırı ve menü çubuğu ikonunda küçük bir nokta görünür. **Güncelle**'ye basınca yeni sürüm indirilir, SHA-256 özeti doğrulanır, eski uygulamanın yerine kurulur ve Time Bar yeniden açılır. Ayarların, süren sayacın ve geçmişin korunur.
+## Gizlilik
 
-Uygulama yerinde güncellenemezse (örneğin Downloads'tan açıldıysa ya da klasörüne yazılamıyorsa) ya da GitHub dosyanın özetini vermezse Releases sayfası açılır. O zaman kurulum komutunu tekrar çalıştırman yeterli, eskisinin yerine son sürümü kurar.
+Time Bar hiçbir veri göndermez, analitik kullanmaz. Tek ağ isteği GitHub'daki sürüm kontrolüdür. Mikrofon, kamera, ekran, erişilebilirlik ya da dosya izni istemez. Sorabileceği tek izin **bildirimler**dir: ilk sayacı başlattığında sorulur. Vermezsen süre dolunca sadece ses çalar ve menü çubuğu yanıp söner.
 
-Güncelleme kontrolünü **Ayarlar › Hakkında › Güncellemeleri denetle** ile kapatabilirsin. Aynı yerden **Şimdi denetle** ile hemen bakabilirsin. Kontrol hiçbir veri göndermez, sadece GitHub'dan son sürüm numarasını okur.
+## Sık sorulanlar
 
-## İzinler ve gizlilik
+**Mac uyursa ya da uygulamayı kapatırsam süre kayar mı?**
+Hayır. Time Bar saniyeleri tek tek saymaz. Her aralığın başladığı ve bittiği saati kaydeder, süreyi bunlardan hesaplar. Uygulamayı kapatıp açtığında ya da Mac uyanınca sayaç doğru yerden devam eder. Bu arada dolan bir geri sayım ya da pomodoro aşaması, uygulama açılınca hemen bildirilir.
 
-Time Bar **veri toplamaz.** Mikrofon, kamera, ekran kaydı, erişilebilirlik veya dosyalarına erişim istemez. Kısayol tuşu da erişilebilirlik izni olmadan çalışır. Kurulumda karşına çıkabilecek her şey şunlar:
+**Mesaideyken Mac'i kapatıp gidersem ne olur?**
+Saat hangi taraftaysa o taraf saymaya devam eder. "Ekran kilitlenince molaya geç" açıksa Mac kilitlenince ya da uyuyunca mola başlar. Kapalıysa çalışma saymaya devam eder. Sonradan fark edersen Geçmiş'ten o kaydı silebilirsin.
 
-| Ne | Ne zaman | Neden |
-|---|---|---|
-| "Tanınmayan geliştirici" uyarısı | İlk açılışta | Uygulama ücretli Apple sertifikasıyla imzalanmadı. Bir izin değil, bir kez "Yine de Aç" demen yeterli. |
-| **Bildirimler** *(isteğe bağlı)* | İlk sayacı başlattığında | Süre dolunca, pomodoro aşaması değişince ve mesai hedefi dolunca haber vermek için. Vermezsen sadece ses çalar ve menü çubuğu yanıp söner. |
-| Giriş öğesi bildirimi *(isteğe bağlı)* | "Mac açılınca başlat"ı açınca | macOS'un standart bildirimi. |
+**Sağ tıklayınca menü açılmıyor, Ayarlar'a nasıl gideceğim?**
+Sol tıkla paneli aç. Ayarlar ve Çık panelin en altında.
 
-Verilerin sadece bu Mac'te durur:
+**Kısayolum çalışmıyor.**
+Ayarlar › Kısayol'da tuşu yeniden kaydet. Tuş sistemde ya da başka bir uygulamada ayrılmışsa Time Bar bunu söyler, başka bir tuş dene.
 
-- Ayarlar ve süren sayaç: `~/Library/Preferences/io.github.omerfarukgzr.timebar.plist`
-- Mesai geçmişi: `~/Library/Application Support/Time Bar/history.json`
+**Bildirim gelmiyor.**
+Ayarlar › Bildirimler'de izin durumu görünür. Kapalıysa **Sistem Ayarları…** butonu seni doğru sayfaya götürür.
 
-## Güvenlik
-
-- Uygulama dışarıdan bağlantı kabul etmez ve yönetici yetkisi istemez.
-- Tek ağ isteği, GitHub'dan son sürüm bilgisini okumaktır. İndirme sadece `github.com` üzerinden yapılır.
-- Güncellemede indirilen dosyanın SHA-256 özeti GitHub'ın verdiği özetle karşılaştırılır. Özet yoksa ya da uyuşmazsa kurulmaz. Zip'ten çıkan uygulamanın kimliği ve sürümü de kontrol edilir; eski bir sürüme geri dönülmez.
-- CSV'ye aktarırken `=`, `+`, `-`, `@` ile başlayan adlar düz yazı olarak kaydedilir, Excel onları formül olarak çalıştırmaz.
-- Her sürümün `SHA-256` özeti Releases sayfasında yazar. İndirdiğin dosyayı doğrulamak için: `shasum -a 256 TimeBar.zip`
-- Bir güvenlik sorunu bulursan lütfen [Issues](../../issues) üzerinden bildir.
-
-## Nasıl çalışır
-
-```
-sol tık ──► panel ──► yeni sayaç / bitir / +5 dk
-sağ tık ─┐
-kısayol ─┴► durumun tersine geç ──► sayaç (aralıklar: başlangıç–bitiş saatleri)
-                                          │
-                     her saniye ──────────┴──► menü çubuğu: ikon + süre
-```
-
-- Sayaç saniye saniye azaltılmaz. Her çalışma, mola ya da odak aralığının başlangıç ve bitiş saati kaydedilir, süreler bunlardan hesaplanır. Bu yüzden Mac uyusa da uygulama kapansa da süre kaymaz.
-- Mesaide çalışma ve mola ayrı aralıklar olarak tutulur. Mesai bitince bunlardan özet çıkarılır ve geçmişe yazılır. Birkaç saniyelik yanlış basışlar özete girmez.
-- Kısayol, macOS'un `RegisterEventHotKey` özelliğiyle çalışır. Bu yüzden erişilebilirlik izni gerekmez.
-
-## Kaynaktan derleme
-
-Xcode 16 veya üstü gerekir.
-
-```bash
-git clone https://github.com/omerfarukgzr/time-bar.git
-cd time-bar
-scripts/build.sh            # dist/app.noindex/Time Bar.app ve dist/TimeBar.zip
-scripts/build.sh --install  # ayrıca ~/Applications'a kurar ve başlatır
-```
+**Neden ilk açılışta uyarı çıkıyor?**
+Uygulama, Apple'ın yıllık ücretli geliştirici sertifikasıyla imzalanmadı. Terminal ile kurarsan bu uyarı hiç çıkmaz.
 
 ## Kaldırma
 
-1. Mac açılınca başlatmayı açtıysan önce **Ayarlar › Genel › Mac açılınca başlat**'ı kapat.
-2. Panelden **Çık**'a bas ve `Time Bar.app` dosyasını çöpe at.
-3. İstersen ayarları ve geçmişi de sil:
-   - `~/Library/Application Support/Time Bar`
-   - Terminal'de: `defaults delete io.github.omerfarukgzr.timebar`
+1. Açtıysan önce **Ayarlar › Genel › Mac açılınca başlat**'ı kapat.
+2. Panelden **Çık**'a bas, `Time Bar.app`'i çöpe at.
+3. Geçmişi ve ayarları da silmek istersen `~/Library/Application Support/Time Bar` klasörünü sil ve Terminal'de `defaults delete io.github.omerfarukgzr.timebar` çalıştır. Geçmişi saklamak istersen önce Geçmiş sayfasından CSV olarak kaydet.
+
+## Geliştirici notları
+
+Proje Xcode projesi olmadan, sadece Swift Package ile derlenir. Menü çubuğu öğesi ve panel penceresi AppKit ile, panelin ve Ayarlar'ın içi SwiftUI ile yazıldı. Dış bağımlılık yok.
+
+**Zaman nasıl tutuluyor.** Bir sayaç, başlangıç ve bitiş saatleri olan aralıklardan oluşur. Her aralık "çalışma" ya da "mola" tarafına aittir. Duraklatmak açık aralığı kapatır, devam etmek yenisini açar. Mesaide taraf değiştirmek bir aralığı kapatıp karşı tarafta yenisini açar. Pomodoroda her aşama aynı şekilde bir aralıktır, aşama dolunca bitiş anı tam hedefe sabitlenir ve sıradaki aşama o andan başlar. Ekrandaki bütün süreler bu aralıklardan hesaplanır. Saniyelik zamanlayıcı sadece ekranı günceller, süreye bir şey eklemez.
+
+**Dosyalar:**
+
+| Dosya | İçinde ne var |
+|---|---|
+| `Session.swift` | Modlar, aralıklar, süren sayaç, pomodoro aşamaları, geçmiş özeti, süre biçimleri |
+| `Model.swift` | Bütün eylemler (başlat, duraklat, taraf değiştir, bitir), saniyelik saat, bildirim ve ses tetikleme, kayıt |
+| `StatusController.swift` | Menü çubuğu öğesi: ikon, yazı, renk; sol ve sağ tık |
+| `MenuBarIcon.swift` | Menü çubuğu ikonları ve çizilen domates |
+| `PanelViews.swift`, `MenuPanel.swift` | Sol tıkla açılan panel |
+| `SettingsView.swift`, `HistoryPage.swift` | Ayarlar penceresi ve Geçmiş sayfası |
+| `HotKey.swift` | Kısayol tuşu (`RegisterEventHotKey`) ve kaydedici |
+| `Notifier.swift` | Bildirimler ve bildirim butonları |
+| `UpdateChecker.swift`, `Updater.swift` | Sürüm kontrolü ve kendi kendini güncelleme |
+
+**Derleme.** macOS 14 SDK'sı olan bir Xcode (16 veya üstü) yeterli:
+
+```bash
+scripts/build.sh            # dist/app.noindex/Time Bar.app ve dist/TimeBar.zip
+scripts/build.sh --install  # ayrıca ~/Applications'a kurar ve açar
+```
+
+**Yeni sürüm çıkarmak.**
+
+1. `Resources/Info.plist`'te `CFBundleShortVersionString`'i artır.
+2. `scripts/build.sh` ile `dist/TimeBar.zip`'i üret.
+3. GitHub'da `v1.2.3` biçiminde etiketli bir release aç ve zip'i **tam olarak `TimeBar.zip` adıyla** ekle. Uygulama ve `install.sh` dosyayı bu adla arar. SHA-256 özetini GitHub kendisi hesaplar.
+
+Taslak ve ön sürümler kullanıcılara gitmez, sadece "latest" olarak işaretlenen release görülür.
+
+## Lisans
+
+MIT. Ayrıntılar [LICENSE](LICENSE) dosyasında.
 
 ---
 
-## English
-
-**Time Bar** is a macOS menu bar timer with four modes: countdown, stopwatch, a chess-clock style **work shift** (one click toggles between work and break, and you get a summary of how you spent the day), and **pomodoro** with configurable focus/break lengths. Right-clicking the menu bar icon doesn't open a menu; it flips the current state (work ↔ break, pause ↔ resume) or starts the mode whose icon is shown. A custom global shortcut does the same. Settings include per-mode options, a weekly history chart with CSV export, and menu bar display options.
-
-**Install:** run `curl -fsSL https://raw.githubusercontent.com/omerfarukgzr/time-bar/main/install.sh | bash`, or [download TimeBar.zip](https://github.com/omerfarukgzr/time-bar/releases/latest/download/TimeBar.zip) (always the latest release), move `Time Bar.app` to Applications, and open it (the app is not notarized: use *System Settings › Privacy & Security › Open Anyway*).
-
-Updates: the app checks GitHub once a day and shows a "new version" row in the panel (can be turned off in Settings); one click downloads, verifies the SHA-256 digest and installs it, then relaunches. No data is collected. Requires macOS 14+. MIT licensed.
+**English.** Time Bar is a macOS menu bar timer with four modes: countdown, stopwatch, a chess-clock style work shift that tracks work and breaks separately, and pomodoro. Right-clicking the menu bar icon flips the current state (work ↔ break, pause ↔ resume) or starts the mode whose icon is shown; a custom global shortcut does the same. Every finished timer is kept in a weekly history with a chart and CSV export. Install with `curl -fsSL https://raw.githubusercontent.com/omerfarukgzr/time-bar/main/install.sh | bash` or download TimeBar.zip from the latest release. Updates are checked once a day, verified by SHA-256 and never touch your settings or history. No data is collected. MIT licensed.
