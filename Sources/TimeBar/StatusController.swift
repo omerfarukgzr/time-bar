@@ -65,7 +65,7 @@ final class StatusController: NSObject {
             lastIcon = (kind, badge)
         }
         let font = NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
-        var attributes: [NSAttributedString.Key: Any] = [.font: font, .baselineOffset: 0.5]
+        var attributes: [NSAttributedString.Key: Any] = [.font: font, .baselineOffset: -1]
         if let color { attributes[.foregroundColor] = color }
         button.attributedTitle = NSAttributedString(string: text.isEmpty ? "" : " " + text, attributes: attributes)
         button.toolTip = model.session.map { "\($0.name) · \($0.mode.title)" } ?? "Time Bar"

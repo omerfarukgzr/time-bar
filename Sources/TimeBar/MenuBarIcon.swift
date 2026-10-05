@@ -15,19 +15,54 @@ enum MenuBarIcon {
             base = NSImage(systemSymbolName: symbol, accessibilityDescription: "Time Bar")?.withSymbolConfiguration(config)
                 ?? NSImage(size: NSSize(width: 16, height: 16))
         }
-        guard badge else {
-            base.isTemplate = true
-            return base
-        }
-        let size = NSSize(width: base.size.width + 3, height: max(base.size.height, 16))
+        // SF Symbol'lerin kutusu çizimi ortalamaz (çantanın altında boşluk kalıyor),
+        // menü çubuğu ise kutuyu ortalar. Çizimin gerçek sınırlarını bulup sabit yükseklikte ortalıyoruz.
+        let ink = inkBounds(of: base)
+        let size = NSSize(width: ink.width + (badge ? 3 : 0), height: height)
         let image = NSImage(size: size, flipped: false) { _ in
-            base.draw(in: NSRect(x: 0, y: (size.height - base.size.height) / 2, width: base.size.width, height: base.size.height))
-            NSColor.black.set()
-            NSBezierPath(ovalIn: NSRect(x: size.width - 4, y: size.height - 4, width: 4, height: 4)).fill()
+            // Tam noktaya yuvarla; 1x ekranda yarım nokta yarım piksel olur, çizgiler bulanıklaşır.
+            // 1 nokta yukarı: çantanın gövdesi yazıyla aynı hizaya gelsin, sap üstte kalsın.
+            let origin = NSPoint(x: -ink.minX, y: ((size.height - ink.height) / 2 - ink.minY).rounded() + 1)
+            base.draw(in: NSRect(origin: origin, size: base.size))
+            if badge {
+                NSColor.black.set()
+                NSBezierPath(ovalIn: NSRect(x: size.width - 4, y: size.height - 4, width: 4, height: 4)).fill()
+            }
             return true
         }
         image.isTemplate = true
         return image
+    }
+
+    /// Menü çubuğu ikonunun yüksekliği; çizim bunun içinde dikeyde ortalanır.
+    private static let height: CGFloat = 18
+
+    /// İkonun boyalı piksellerinin sınırı (nokta cinsinden, sol alt köşe başlangıç).
+    private static func inkBounds(of image: NSImage) -> NSRect {
+        let scale: CGFloat = 4
+        let w = Int(image.size.width * scale), h = Int(image.size.height * scale)
+        guard w > 0, h > 0, let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: w, pixelsHigh: h,
+                                                       bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                                                       colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0),
+              let ctx = NSGraphicsContext(bitmapImageRep: rep) else {
+            return NSRect(origin: .zero, size: image.size)
+        }
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = ctx
+        image.draw(in: NSRect(x: 0, y: 0, width: w, height: h))
+        NSGraphicsContext.restoreGraphicsState()
+
+        var minX = w, maxX = -1, minY = h, maxY = -1
+        for y in 0..<h {
+            for x in 0..<w where rep.colorAt(x: x, y: y)!.alphaComponent > 0.2 {
+                minX = min(minX, x); maxX = max(maxX, x)
+                minY = min(minY, y); maxY = max(maxY, y)
+            }
+        }
+        guard maxX >= 0 else { return NSRect(origin: .zero, size: image.size) }
+        // colorAt'te y yukarıdan aşağı sayılır; çizim koordinatına çevir
+        return NSRect(x: CGFloat(minX) / scale, y: CGFloat(h - 1 - maxY) / scale,
+                      width: CGFloat(maxX - minX + 1) / scale, height: CGFloat(maxY - minY + 1) / scale)
     }
 }
 
@@ -87,10 +122,17 @@ struct ModeIcon: View {
     var size: CGFloat = 15
 
     var body: some View {
-        if mode == .pomodoro {
-            Image(nsImage: Tomato.image(size: size * 1.2)).renderingMode(.template)
-        } else {
-            Image(systemName: mode.symbol).font(.system(size: size))
+        // Semboller farklı yükseklikte (kronometre uzun); aynı kutuda dursunlar ki altlarındaki yazılar hizalı kalsın
+        Group {
+            if mode == .pomodoro {
+                // Çizilmiş resmin baseline'ı yok; .firstTextBaseline'da alt kenarı yazı çizgisine oturup yukarı kayıyordu.
+                // Semboller gibi büyük harf yüksekliğinin ortasına hizala.
+                Image(nsImage: Tomato.image(size: size * 1.2)).renderingMode(.template)
+                    .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + size * 0.35 }
+            } else {
+                Image(systemName: mode.symbol).font(.system(size: size))
+            }
         }
+        .frame(height: size * 1.2)
     }
 }
