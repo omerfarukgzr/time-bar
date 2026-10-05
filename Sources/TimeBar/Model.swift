@@ -134,7 +134,7 @@ final class Model: ObservableObject {
         if session.mode == .shift {
             let summary = Summary(session: session, end: Date())
             history.insert(summary, at: 0)
-            history = Array(history.prefix(60))
+            history = Array(history.prefix(2000))
             store(history, "history")
             shownSummary = summary
         }
@@ -157,6 +157,12 @@ final class Model: ObservableObject {
     func clearHistory() {
         history = []
         store(history, "history")
+    }
+
+    func deleteSummary(_ summary: Summary) {
+        history.removeAll { $0.id == summary.id }
+        store(history, "history")
+        if shownSummary?.id == summary.id { shownSummary = nil }
     }
 
     func removeRecent(_ preset: Preset) {

@@ -59,7 +59,6 @@ struct NewSessionView: View {
     @State private var hours = 1
     @State private var minutes = 0
     @State private var hasTarget = true
-    @State private var showAllHistory = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -95,21 +94,6 @@ struct NewSessionView: View {
                     ForEach(model.recents) { preset in
                         RecentRow(preset: preset)
                     }
-                }
-                .padding(.horizontal, -6)
-            }
-
-            if !model.history.isEmpty {
-                HStack {
-                    SectionHeader(title: "Mesai geçmişi")
-                    if model.history.count > 3 {
-                        Button(showAllHistory ? "Daha az" : "Tümü") { showAllHistory.toggle() }
-                            .buttonStyle(.link)
-                            .font(.system(size: 11))
-                    }
-                }
-                VStack(spacing: 0) {
-                    ForEach(model.history.prefix(showAllHistory ? 30 : 3)) { HistoryRow(summary: $0) }
                 }
                 .padding(.horizontal, -6)
             }
@@ -517,41 +501,6 @@ struct SummaryView: View {
             }
             .font(.system(size: 12))
         }
-    }
-}
-
-struct HistoryRow: View {
-    @EnvironmentObject var model: Model
-    let summary: Summary
-    @State private var hover = false
-
-    var body: some View {
-        let span = max(summary.span, 1)
-        let work = summary.total(.work)
-        HStack(spacing: 8) {
-            VStack(alignment: .leading, spacing: 1) {
-                Text(summary.name).lineLimit(1)
-                Text(summary.start.formatted(.dateTime.day().month(.abbreviated)) + " · " + TimeFormat.words(summary.span))
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-            // Çalışma / mola oranı
-            HStack(spacing: 0) {
-                Rectangle().fill(Color.work).frame(width: 56 * work / span)
-                Rectangle().fill(Color.away)
-            }
-            .frame(width: 56, height: 6)
-            .clipShape(Capsule())
-            Text(TimeFormat.words(work))
-                .font(.system(size: 11.5).monospacedDigit())
-                .frame(width: 66, alignment: .trailing)
-        }
-        .font(.system(size: 12.5))
-        .rowStyle(hover: hover)
-        .onHover { hover = $0 }
-        .onTapGesture { model.shownSummary = summary }
-        .help("Özeti göster")
     }
 }
 

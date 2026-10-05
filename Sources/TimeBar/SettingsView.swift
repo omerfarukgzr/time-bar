@@ -4,7 +4,7 @@ import UserNotifications
 
 /// Ayarlar sayfaları; pencerenin üstündeki sekmelerle aynı sırada.
 enum SettingsPage: Int, CaseIterable, Identifiable {
-    case general, menuBar, shortcut, notifications, shift, about
+    case general, menuBar, shortcut, notifications, shift, history, about
 
     var id: Int { rawValue }
 
@@ -15,6 +15,7 @@ enum SettingsPage: Int, CaseIterable, Identifiable {
         case .shortcut: "Kısayol"
         case .notifications: "Bildirimler"
         case .shift: "Mesai"
+        case .history: "Geçmiş"
         case .about: "Hakkında"
         }
     }
@@ -26,6 +27,7 @@ enum SettingsPage: Int, CaseIterable, Identifiable {
         case .shortcut: "command"
         case .notifications: "bell.badge"
         case .shift: "briefcase"
+        case .history: "chart.bar.xaxis"
         case .about: "info.circle"
         }
     }
@@ -36,7 +38,8 @@ enum SettingsPage: Int, CaseIterable, Identifiable {
         case .menuBar: "Sayacın menü çubuğunda nasıl göründüğü."
         case .shortcut: "Sayacı klavyeden başlatıp durdurmak için."
         case .notifications: "Süre dolunca ne olacağı."
-        case .shift: "Çalışma ve mola saatinin davranışı, geçmiş."
+        case .shift: "Çalışma ve mola saatinin davranışı."
+        case .history: "Biten mesailer: ne kadar çalıştın, ne kadar mola verdin."
         case .about: "Sürüm, güncellemeler ve kaynak kodu."
         }
     }
@@ -96,6 +99,15 @@ struct SettingsPageView: View {
     var select: (SettingsPage) -> Void = { _ in }
 
     var body: some View {
+        if page == .history {
+            // Geçmiş uzayabilir; pencere sabit boyda kalır, sayfa kayar
+            ScrollView { content }.frame(width: 560, height: 640)
+        } else {
+            content.fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var content: some View {
         VStack(alignment: .leading, spacing: 18) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(page.title).font(.system(size: 20, weight: .bold))
@@ -107,6 +119,7 @@ struct SettingsPageView: View {
             case .shortcut: ShortcutPage()
             case .notifications: NotificationsPage()
             case .shift: ShiftPage()
+            case .history: HistoryPage()
             case .about: AboutPage()
             }
         }
@@ -114,7 +127,6 @@ struct SettingsPageView: View {
         .padding(.top, 14)
         .padding(.bottom, 22)
         .frame(width: 560, alignment: .leading)
-        .fixedSize(horizontal: false, vertical: true)
         .toggleStyle(.switch)
     }
 }
@@ -147,7 +159,8 @@ struct GeneralPage: View {
             NavRow(.menuBar, "Menü çubuğunda süre ve ad", value: menuBarValue, select: select)
             NavRow(.shortcut, "Başlat / durdur tuşu", value: Shortcut.saved?.display ?? "Yok", select: select)
             NavRow(.notifications, "Bitiş sesi ve bildirim", value: sound.isEmpty ? "Sessiz" : sound, select: select)
-            NavRow(.shift, "Ekran kilidi ve geçmiş", value: "\(model.history.count) kayıt", select: select)
+            NavRow(.shift, "Ekran kilitlenince molaya geçme", value: awayOnLock ? "Açık" : "Kapalı", select: select)
+            NavRow(.history, "Biten mesailer ve haftalık özet", value: "\(model.history.count) mesai", select: select)
             NavRow(.about, "Sürüm ve güncellemeler", value: UpdateChecker.currentVersion, select: select)
         }
         .id(shortcutData) // kısayol değişince değer yenilensin
@@ -275,27 +288,12 @@ struct NotificationsPage: View {
 }
 
 struct ShiftPage: View {
-    @EnvironmentObject var model: Model
     @AppStorage(Model.lockKey) private var awayOnLock = false
-    @State private var confirmClear = false
 
     var body: some View {
         Card {
             SettingRow("Ekran kilitlenince molaya geç", "Kilidi açınca çalışmaya geri döner. Kalkarken tuşa basmayı unutursan işe yarar.") {
                 Toggle("", isOn: $awayOnLock).labelsHidden()
-            }
-        }
-        SectionLabel("Geçmiş")
-        Card {
-            SettingRow("Biten mesailer",
-                       model.history.isEmpty ? "Henüz biten mesai yok." : "\(model.history.count) mesai kayıtlı. Sadece bu Mac'te saklanır, son 60 mesai tutulur.") {
-                Button("Temizle…") { confirmClear = true }
-                    .disabled(model.history.isEmpty)
-                    .confirmationDialog("Mesai geçmişi silinsin mi?", isPresented: $confirmClear) {
-                        Button("Sil", role: .destructive) { model.clearHistory() }
-                    } message: {
-                        Text("\(model.history.count) mesainin özeti silinir. Bu geri alınamaz.")
-                    }
             }
         }
     }
