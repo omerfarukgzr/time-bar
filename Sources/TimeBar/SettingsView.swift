@@ -136,7 +136,7 @@ struct SettingsPageView: View {
 struct GeneralPage: View {
     @EnvironmentObject var model: Model
     var select: (SettingsPage) -> Void
-    @AppStorage(AppDelegate.dockKey) private var showInDock = true
+    @AppStorage(AppDelegate.dockKey) private var showInDock = false
     @AppStorage("showTime") private var showTime = true
     @AppStorage("showName") private var showName = true
     @AppStorage(Sounds.key) private var sound = "Glass"

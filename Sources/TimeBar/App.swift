@@ -41,7 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     static func applyDockPolicy() {
-        let show = UserDefaults.standard.object(forKey: dockKey) as? Bool ?? true
+        let show = UserDefaults.standard.object(forKey: dockKey) as? Bool ?? false
         NSApp.setActivationPolicy(show ? .regular : .accessory)
     }
 
