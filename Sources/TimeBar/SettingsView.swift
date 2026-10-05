@@ -203,7 +203,7 @@ struct MenuBarPage: View {
             SettingRow("Süreyi göster", "Kapalıyken ikondaki halka ne kadar kaldığını yine gösterir.") {
                 Toggle("", isOn: $showTime).labelsHidden()
             }
-            SettingRow("Adı göster", "Mesaide moladayken her zaman \"Mola\" yazar.") {
+            SettingRow("Adı göster", "Mesaide çalışmayı çanta, molayı fincan ikonu gösterir.") {
                 Toggle("", isOn: $showName).labelsHidden()
             }
             SettingRow("Süre biçimi", "Saniyeli saat ya da dakika.") {

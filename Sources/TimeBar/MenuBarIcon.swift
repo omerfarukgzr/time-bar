@@ -9,9 +9,9 @@ enum MenuBarIcon {
         case remaining(Double)
         /// Kronometre: dakika içindeki saniye (ibre döner).
         case stopwatch(Int)
-        /// Mesai, çalışma tarafı: hedefin ne kadarı geçti (hedef yoksa nil).
-        case work(Double?)
-        /// Mesai, mola tarafı.
+        /// Mesai, çalışma tarafı: çanta.
+        case work
+        /// Mola: kahve fincanı.
         case away
     }
 
@@ -19,7 +19,8 @@ enum MenuBarIcon {
     private static let radius: CGFloat = 6.5
 
     static func image(_ kind: Kind, badge: Bool = false) -> NSImage {
-        if kind == .away, let cup = awayImage(badge: badge) { return cup }
+        if kind == .away, let cup = symbol("cup.and.saucer.fill", badge: badge) { return cup }
+        if kind == .work, let bag = symbol("briefcase.fill", badge: badge) { return bag }
         let image = NSImage(size: NSSize(width: 18, height: 18), flipped: true) { _ in
             NSColor.black.set()
             switch kind {
@@ -34,15 +35,7 @@ enum MenuBarIcon {
                 circle(alpha: 1)
                 NSBezierPath(rect: NSRect(x: 8, y: 0.5, width: 2, height: 2)).fill()
                 hand(angle: Double(second) / 60, length: 4.5)
-            case .work(let p):
-                if let p {
-                    circle(alpha: 0.3)
-                    arc(p)
-                } else {
-                    circle(alpha: 1)
-                }
-                dot(r: 2.2)
-            case .away:
+            case .work, .away:
                 circle(alpha: 1)
             }
             if badge {
@@ -56,9 +49,9 @@ enum MenuBarIcon {
         return image
     }
 
-    private static func awayImage(badge: Bool) -> NSImage? {
+    private static func symbol(_ name: String, badge: Bool) -> NSImage? {
         let config = NSImage.SymbolConfiguration(pointSize: 13, weight: .regular)
-        guard let cup = NSImage(systemSymbolName: "cup.and.saucer.fill", accessibilityDescription: "Mola")?
+        guard let cup = NSImage(systemSymbolName: name, accessibilityDescription: name == "briefcase.fill" ? "Çalışma" : "Mola")?
             .withSymbolConfiguration(config) else { return nil }
         guard badge else {
             cup.isTemplate = true
@@ -110,10 +103,5 @@ enum MenuBarIcon {
         path.lineCapStyle = .round
         NSColor.black.setStroke()
         path.stroke()
-    }
-
-    private static func dot(r: CGFloat) {
-        NSColor.black.setFill()
-        NSBezierPath(ovalIn: NSRect(x: center.x - r, y: center.y - r, width: 2 * r, height: 2 * r)).fill()
     }
 }

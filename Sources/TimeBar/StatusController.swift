@@ -87,7 +87,6 @@ final class StatusController: NSObject {
         if name.count > 14 { name = String(name.prefix(13)) + "…" }
 
         let kind: MenuBarIcon.Kind
-        var label = name
         var value: String
         var color: NSColor?
         switch s.mode {
@@ -114,7 +113,6 @@ final class StatusController: NSObject {
             let phase = s.phase ?? .focus
             let remaining = s.phaseRemaining(at: now)
             kind = phase == .focus ? .remaining(remaining / max(s.phaseLength ?? 1, 1)) : .away
-            if phase != .focus { label = phase.title }
             value = time(remaining, up: true)
             if !s.isRunning { value += " ⏸" }
             if warn && phase == .focus && remaining <= 60 { color = .systemOrange }
@@ -122,17 +120,16 @@ final class StatusController: NSObject {
         case .shift:
             if s.side == .away {
                 kind = .away
-                label = "Mola"
                 value = time(s.currentStretch(at: now))
             } else {
-                kind = .work(s.target.map { s.span(at: now) / max($0, 1) })
+                kind = .work
                 value = time(s.total(.work, at: now))
             }
         }
 
         var parts: [String] = []
-        // Moladayken ad yerine "Mola" yazar; ad gizli olsa da hangi tarafta olduğun görünsün
-        if showName || label != name { parts.append(label) }
+        // Çalışma mı mola mı olduğunu ikon gösteriyor (çanta / fincan), ayrıca yazmaya gerek yok
+        if showName { parts.append(name) }
         if showTime { parts.append(value) }
         // Süre gizliyken de "Bitti" görünsün
         if !showTime && s.finishedAt != nil { parts.append(value) }
