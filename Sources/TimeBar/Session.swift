@@ -38,7 +38,7 @@ enum Mode: String, Codable, CaseIterable, Identifiable {
         case .countdown: "timer"
         case .stopwatch: "stopwatch"
         case .shift: "briefcase"
-        case .pomodoro: "leaf"
+        case .pomodoro: Tomato.name
         }
     }
 }

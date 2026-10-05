@@ -368,8 +368,7 @@ struct ModeCard<Content: View>: View {
         let on = enabled?.wrappedValue ?? true
         Card {
             HStack(spacing: 12) {
-                Image(systemName: mode.symbol)
-                    .font(.system(size: 16))
+                ModeIcon(mode: mode, size: 16)
                     .foregroundStyle(on ? Color.accentColor : .secondary)
                     .frame(width: 24)
                 VStack(alignment: .leading, spacing: 2) {

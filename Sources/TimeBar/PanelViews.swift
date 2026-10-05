@@ -165,7 +165,7 @@ struct ModeTabs: View {
                 let selected = mode == selection
                 Button { selection = mode } label: {
                     VStack(spacing: 3) {
-                        Image(systemName: mode.symbol).font(.system(size: 15))
+                        ModeIcon(mode: mode, size: 15)
                         Text(mode.title).font(.system(size: 10.5, weight: selected ? .semibold : .regular))
                             .lineLimit(1).minimumScaleFactor(0.85)
                     }
@@ -590,7 +590,7 @@ struct Header: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            Image(systemName: session.mode.symbol).foregroundStyle(.secondary)
+            ModeIcon(mode: session.mode, size: 13).foregroundStyle(.secondary)
             Text(session.name).font(.system(size: 13, weight: .semibold)).lineLimit(1)
             Spacer()
             if session.name != session.mode.title {
