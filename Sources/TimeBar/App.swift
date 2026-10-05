@@ -26,6 +26,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Notifier.shared.setup(model: model)
         HotKey.shared.action = { [weak controller] in controller?.hotKeyPressed() }
         HotKey.shared.apply()
+        // Geliştirirken ayarları doğrudan açmak için: open -a "Time Bar" --args --settings
+        let args = CommandLine.arguments
+        if let i = args.firstIndex(of: "--settings") {
+            let page = args.indices.contains(i + 1) ? Int(args[i + 1]).flatMap(SettingsPage.init) : nil
+            controller.showSettings(page: page ?? .general)
+        }
     }
 
     /// Dock ikonuna tıklanınca paneli aç.

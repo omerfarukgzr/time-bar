@@ -15,6 +15,7 @@ final class Model: ObservableObject {
     @Published private(set) var history: [Summary] = []
     @Published private(set) var update: AvailableUpdate?
     @Published private(set) var updateStatus: UpdateStatus = .idle
+    @Published private(set) var checkingUpdate = false
 
     enum UpdateStatus { case idle, installing, failed }
 
@@ -262,14 +263,17 @@ final class Model: ObservableObject {
 
     // MARK: Güncelleme
 
-    func checkForUpdate() {
+    /// force: Ayarlar'daki "Şimdi denetle"; günlük aralığı beklemez.
+    func checkForUpdate(force: Bool = false) {
         guard UpdateChecker.isEnabled else {
             if update != nil { update = nil }
             return
         }
+        checkingUpdate = true
         Task {
-            let found = await UpdateChecker.checkIfDue()
+            let found = await UpdateChecker.checkIfDue(force: force)
             if found != update { update = found }
+            checkingUpdate = false
         }
     }
 

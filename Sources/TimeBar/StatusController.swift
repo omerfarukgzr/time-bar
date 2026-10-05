@@ -239,17 +239,12 @@ final class StatusController: NSObject {
 
     // MARK: Ayarlar
 
-    func showSettings() {
+    func showSettings(page: SettingsPage? = nil) {
         closePanel()
         if settingsWindow == nil {
-            let controller = NSHostingController(rootView: SettingsView().environmentObject(model))
-            let window = NSWindow(contentViewController: controller)
-            window.title = "Time Bar Ayarları"
-            window.styleMask = [.titled, .closable]
-            window.isReleasedWhenClosed = false
-            window.center()
-            settingsWindow = window
+            settingsWindow = SettingsController.makeWindow(model: model)
         }
+        if let page { (settingsWindow?.contentViewController as? SettingsController)?.select(page) }
         NSApp.activate(ignoringOtherApps: true)
         settingsWindow?.makeKeyAndOrderFront(nil)
     }

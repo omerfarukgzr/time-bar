@@ -27,8 +27,15 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     }
 
     /// İzin ilk sayaç başlatılınca istenir, açılışta değil.
-    func requestPermission() {
-        center?.requestAuthorization(options: [.alert]) { _, _ in }
+    func requestPermission(then done: @escaping @MainActor () -> Void = {}) {
+        center?.requestAuthorization(options: [.alert]) { _, _ in
+            DispatchQueue.main.async { MainActor.assumeIsolated { done() } }
+        }
+    }
+
+    func authorizationStatus() async -> UNAuthorizationStatus? {
+        guard let center else { return nil }
+        return await center.notificationSettings().authorizationStatus
     }
 
     func post(_ kind: Kind, title: String, body: String) {
