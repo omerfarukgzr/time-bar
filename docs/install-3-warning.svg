@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 330" width="660" height="330" role="img" aria-label="İlk açılışta çıkan “Time Bar.app Açılmadı” uyarısında Bitti'ye bas">
+<title>İlk açılışta çıkan “Time Bar.app Açılmadı” uyarısında Bitti'ye bas</title>
+<style>
+  text { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif; }
+  .bg { fill: #f6f8fa; }
+  .win { fill: #ffffff; stroke: #d0d7de; }
+  .bar { fill: #f2f2f4; }
+  .side { fill: #f2f2f4; }
+  .line { stroke: #e3e3e8; }
+  .t1 { fill: #1f2328; }
+  .t2 { fill: #6e7781; }
+  .sel { fill: #dbe7fb; }
+  .btn2 { fill: #e8e8ed; }
+  .doc { fill: #ffffff; stroke: #b9bec6; }
+  .mark { stroke: #e5484d; fill: none; }
+  .markfill { fill: #e5484d; }
+  .accent { fill: #0a84ff; }
+  .sicon, .chev { stroke: #6e7781; }
+  .rowsel { fill: #0a64d8; }
+  .t1sel { fill: #ffffff; }
+  .card { fill: #f5f5f7; }
+  .field { fill: #e3e3e8; }
+  .fade { fill: url(#fadeg); }
+  .fadestop { stop-color: #ffffff; }
+  .hint { fill: #e5484d; }
+  @media (prefers-color-scheme: dark) {
+    .bg { fill: #0d1117; }
+    .win { fill: #2a2a2d; stroke: #44464b; }
+    .bar, .side { fill: #333337; }
+    .line { stroke: #44464b; }
+    .t1 { fill: #f0f3f6; }
+    .t2 { fill: #9198a1; }
+    .sel { fill: #2f4a73; }
+    .btn2 { fill: #48484d; }
+    .doc { fill: #3a3a3e; stroke: #6b6f76; }
+    .mark { stroke: #ff6369; }
+    .markfill { fill: #ff6369; }
+    .sicon, .chev { stroke: #c4c8ce; }
+    .rowsel { fill: #0a5bc4; }
+    .card { fill: #323235; }
+    .fadestop { stop-color: #2a2a2d; }
+    .field { fill: #3a3a3e; }
+    .hint { fill: #e5484d; }
+  }
+</style>
+<rect class="bg" width="660" height="330" rx="12"/>
+<rect class="win" x="190" y="20" width="280" height="290" rx="16"/>
+<image href="data:image/png;base64,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" x="214" y="44" width="52" height="52"/>
+<path d="M256 76 l14 24 h-28 z" fill="#ffcc00" stroke="#8a6d00" stroke-width="1"/>
+<text x="256" y="97" font-size="14" font-weight="800" fill="#4a3a00" text-anchor="middle">!</text>
+<text class="t1" x="214" y="132" font-size="13" font-weight="700">“Time Bar.app” Açılmadı</text>
+<text class="t1" x="214" y="154" font-size="11.5">Apple, “Time Bar.app” öğesinin Mac’inize</text>
+<text class="t1" x="214" y="170" font-size="11.5">zarar verebilecek veya gizliliğinizi ihlal</text>
+<text class="t1" x="214" y="186" font-size="11.5">edebilecek bir kötü amaçlı yazılım</text>
+<text class="t1" x="214" y="202" font-size="11.5">içermediğini doğrulayamadı.</text>
+<rect class="accent" x="210" y="222" width="240" height="30" rx="15"/>
+<text x="330.0" y="242" font-size="13" fill="#fff" text-anchor="middle">Çöp Sepeti’ne Taşı</text>
+<rect class="btn2" x="210" y="262" width="240" height="30" rx="15"/>
+<text class="t1" x="330.0" y="282" font-size="13" text-anchor="middle">Bitti</text>
+<rect class="mark" x="204" y="256" width="252" height="42" rx="21" stroke-width="2.5"/>
+<circle class="markfill" cx="500" cy="277" r="12"/><text x="500" y="281.5" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+<text class="t1" x="520" y="282" font-size="13" font-weight="600">Bitti’ye bas</text>
+<text class="t2" x="170" y="234" font-size="12" text-anchor="end">Buna basma,</text>
+<text class="t2" x="170" y="250" font-size="12" text-anchor="end">uygulamayı siler</text>
+</svg>
