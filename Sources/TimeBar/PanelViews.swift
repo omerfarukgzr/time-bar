@@ -261,7 +261,7 @@ struct CountdownView: View {
                     Button("+5 dk") { model.addFiveMinutes() }
                     Button("Tekrar") { model.restart() }
                     Spacer()
-                    Button("Tamam") { model.dismiss() }.keyboardShortcut(.defaultAction)
+                    Button("Tamam") { model.finish() }.keyboardShortcut(.defaultAction)
                 } else {
                     PrimaryButton()
                     Button("+5 dk") { model.addFiveMinutes() }
@@ -485,6 +485,7 @@ struct Timeline: View {
     let start: Date
     let end: Date
     let now: Date
+    var workColor: Color = .work
 
     var body: some View {
         GeometryReader { geo in
@@ -495,7 +496,7 @@ struct Timeline: View {
                     let x = segment.start.timeIntervalSince(start) / range * geo.size.width
                     let w = max(segment.duration(at: now) / range * geo.size.width, 1)
                     Rectangle()
-                        .fill(segment.side == .work ? Color.work : Color.away)
+                        .fill(segment.side == .work ? workColor : Color.away)
                         .frame(width: w)
                         .offset(x: x)
                 }

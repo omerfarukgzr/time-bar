@@ -39,7 +39,7 @@ enum SettingsPage: Int, CaseIterable, Identifiable {
         case .shortcut: "Sayacı klavyeden başlatıp durdurmak için."
         case .notifications: "Süre dolunca ne olacağı."
         case .modes: "Panelde hangi modların görüneceği ve her birinin ayarları."
-        case .history: "Biten mesailer: ne kadar çalıştın, ne kadar mola verdin."
+        case .history: "Biten bütün sayaçlar: ne kadar sürdü, ne kadar mola verdin."
         case .about: "Sürüm, güncellemeler ve kaynak kodu."
         }
     }
@@ -160,7 +160,7 @@ struct GeneralPage: View {
             NavRow(.menuBar, "Menü çubuğunda süre ve ad", value: menuBarValue, select: select)
             NavRow(.shortcut, "Başlat / durdur tuşu", value: Shortcut.saved?.display ?? "Yok", select: select)
             NavRow(.notifications, "Bitiş sesi ve bildirim", value: sound.isEmpty ? "Sessiz" : sound, select: select)
-            NavRow(.history, "Biten mesailer ve haftalık özet", value: "\(model.history.count) mesai", select: select)
+            NavRow(.history, "Biten sayaçlar ve haftalık özet", value: "\(model.history.count) kayıt", select: select)
             NavRow(.about, "Sürüm ve güncellemeler", value: UpdateChecker.currentVersion, select: select)
         }
         .id("\(shortcutData?.count ?? 0)\(enabledRaw)") // kısayol ya da modlar değişince değerler yenilensin
@@ -245,7 +245,7 @@ struct NotificationsPage: View {
 
     var body: some View {
         Card {
-            SettingRow("Bitiş sesi", "Geri sayım bitince ve mesai hedefi dolunca çalar.") {
+            SettingRow("Bitiş sesi", "Geri sayım bitince, pomodoro aşaması değişince ve mesai hedefi dolunca çalar.") {
                 HStack(spacing: 6) {
                     Picker("", selection: $sound) {
                         Text("Sessiz").tag("")
@@ -415,7 +415,7 @@ struct AboutPage: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Time Bar").font(.system(size: 15, weight: .semibold))
                     Text("Sürüm \(UpdateChecker.currentVersion)").font(.system(size: 12)).foregroundStyle(.secondary)
-                    Text("Menü çubuğunda geri sayım, kronometre ve mesai saati.").font(.system(size: 12)).foregroundStyle(.secondary)
+                    Text("Menü çubuğunda geri sayım, kronometre, mesai saati ve pomodoro.").font(.system(size: 12)).foregroundStyle(.secondary)
                 }
                 Spacer()
             }

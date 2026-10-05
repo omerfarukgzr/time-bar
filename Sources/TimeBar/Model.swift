@@ -92,7 +92,7 @@ final class Model: ObservableObject {
         case .shift:
             toggleSide()
         case .countdown where session.finishedAt != nil:
-            dismiss()
+            finish()
         case .countdown, .stopwatch, .pomodoro:
             session.isRunning ? pause() : resume()
         }
@@ -148,26 +148,32 @@ final class Model: ObservableObject {
         Notifier.shared.clear()
     }
 
-    /// Aynı ayarla baştan başlatır.
+    /// Aynı ayarla baştan başlatır; yarıda kalan sayaç da geçmişe yazılır.
     func restart() {
         guard let session else { return }
+        record(session)
         start(Preset(name: session.name, mode: session.mode, target: session.target))
     }
 
-    /// Sayacı kapatır. Mesai bittiyse özeti saklar ve panelde gösterir.
+    /// Sayacı kapatır ve geçmişe yazar. Mesai bittiyse özeti panelde de gösterir.
     func finish() {
         guard let session else { return }
-        if session.mode == .shift {
-            let summary = Summary(session: session, end: Date())
-            history.insert(summary, at: 0)
-            history = Array(history.prefix(2000))
-            saveHistory()
-            shownSummary = summary
-        }
-        dismiss()
+        if let summary = record(session), session.mode == .shift { shownSummary = summary }
+        clear()
     }
 
-    func dismiss() {
+    /// Biten sayacı geçmişe ekler. 10 saniyeden kısa denemeler kaydedilmez.
+    @discardableResult
+    private func record(_ session: Session) -> Summary? {
+        let summary = Summary(session: session, end: session.finishedAt ?? Date())
+        guard summary.active >= 10 else { return nil }
+        history.insert(summary, at: 0)
+        history = Array(history.prefix(5000))
+        saveHistory()
+        return summary
+    }
+
+    private func clear() {
         session = nil
         alertingSince = nil
         autoAway = false

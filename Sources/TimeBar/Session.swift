@@ -215,26 +215,39 @@ struct Preset: Codable, Equatable, Identifiable {
     }
 }
 
-/// Biten mesainin özeti.
+/// Biten bir sayacın özeti; dört mod için de geçmişe yazılır.
 struct Summary: Codable, Equatable, Identifiable {
     var id = UUID()
     var name: String
+    /// Eski sürümlerde sadece mesai kaydediliyordu ve bu alan yoktu; yoksa mesai say.
+    var mode: Mode?
     var start: Date
     var end: Date
     var target: TimeInterval?
     var segments: [Segment]
+    /// Geri sayım süresi dolana kadar sürdü mü.
+    var completed: Bool?
+    /// Pomodoro'da biten odak sayısı.
+    var rounds: Int?
+
+    var kind: Mode { mode ?? .shift }
 
     init(session: Session, end: Date) {
         name = session.name
+        mode = session.mode
         start = session.startedAt
         self.end = end
         target = session.target
+        completed = session.mode == .countdown ? session.finishedAt != nil : nil
+        rounds = session.mode == .pomodoro ? session.round : nil
         var s = session
         s.close(at: end)
-        // Birkaç saniyelik yanlış basışlar istatistiği bozmasın: onları at, kalan aynı taraf bloklarını birleştir
+        // Birkaç saniyelik yanlış basışlar istatistiği bozmasın: onları at, araya düştükleri
+        // aynı taraf bloklarını birleştir. Duraklatma boşluğu varsa birleştirme, süre şişmesin.
         var merged: [Segment] = []
         for segment in s.segments where segment.duration(at: end) >= 5 {
-            if let last = merged.last, last.side == segment.side {
+            if let last = merged.last, last.side == segment.side,
+               segment.start.timeIntervalSince(last.end ?? end) <= 5 {
                 merged[merged.count - 1].end = segment.end
             } else {
                 merged.append(segment)
@@ -247,6 +260,8 @@ struct Summary: Codable, Equatable, Identifiable {
         segments.filter { $0.side == side }.reduce(0) { $0 + $1.duration(at: end) }
     }
 
+    /// Sayacın işlediği toplam süre (duraklatmalar hariç).
+    var active: TimeInterval { total(.work) + total(.away) }
     var span: TimeInterval { end.timeIntervalSince(start) }
     var breaks: [Segment] { segments.filter { $0.side == .away } }
 
