@@ -186,7 +186,7 @@ struct MenuBarPage: View {
         // Ayarların menü çubuğundaki karşılığı
         HStack(spacing: 6) {
             Spacer()
-            Image(nsImage: MenuBarIcon.image(.remaining(0.7)))
+            Image(nsImage: MenuBarIcon.image(Mode.countdown.symbol))
             if showName || showTime {
                 Text([showName ? "Ders" : nil, showTime ? (timeFormat == "clock" ? "42:15" : "43 dk") : nil]
                     .compactMap { $0 }.joined(separator: " · "))
@@ -200,7 +200,7 @@ struct MenuBarPage: View {
         .animation(.easeOut(duration: 0.15), value: showTime)
 
         Card {
-            SettingRow("Süreyi göster", "Kapalıyken ikondaki halka ne kadar kaldığını yine gösterir.") {
+            SettingRow("Süreyi göster", "Kapalıyken sadece modun ikonu görünür.") {
                 Toggle("", isOn: $showTime).labelsHidden()
             }
             SettingRow("Adı göster", "Mesaide çalışmayı çanta, molayı fincan ikonu gösterir.") {

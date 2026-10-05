@@ -13,7 +13,7 @@ final class StatusController: NSObject {
     private var outsideClickMonitor: Any?
     private var cancellables: Set<AnyCancellable> = []
     private var isOpen = false
-    private var lastIcon: (MenuBarIcon.Kind, Bool)?
+    private var lastIcon: (String, Bool)?
 
     static let width: CGFloat = 300
 
@@ -71,14 +71,19 @@ final class StatusController: NSObject {
     }
 
     /// İkon türü, yazı ve renk. Ayarlar'daki "süreyi göster" ve "adı göster" burada uygulanır.
-    private func display() -> (MenuBarIcon.Kind, String, NSColor?) {
+    private func display() -> (String, String, NSColor?) {
         let defaults = UserDefaults.standard
         let showTime = defaults.object(forKey: "showTime") as? Bool ?? true
         let showName = defaults.object(forKey: "showName") as? Bool ?? true
         let warn = defaults.object(forKey: "warnLastMinute") as? Bool ?? true
         let seconds = (defaults.string(forKey: "timeFormat") ?? "clock") == "clock"
 
-        guard let s = model.session else { return (.idle, "", nil) }
+        // Sayaç yokken panelde seçili modun ikonu
+        guard let s = model.session else {
+            let selected = defaults.string(forKey: "lastMode").flatMap(Mode.init(rawValue:))
+            let modes = Mode.enabled
+            return ((selected.flatMap { modes.contains($0) ? $0 : nil } ?? modes[0]).symbol, "", nil)
+        }
         let now = model.now
         func time(_ t: TimeInterval, up: Bool = false) -> String {
             seconds ? TimeFormat.clock(up ? t.rounded(.up) : t) : TimeFormat.compact(t, roundUp: up)
@@ -86,14 +91,12 @@ final class StatusController: NSObject {
         var name = s.name
         if name.count > 14 { name = String(name.prefix(13)) + "…" }
 
-        let kind: MenuBarIcon.Kind
+        var kind = s.mode.symbol
         var value: String
         var color: NSColor?
         switch s.mode {
         case .countdown:
-            let target = max(s.target ?? 1, 1)
             let remaining = s.remaining(at: now)
-            kind = .remaining(remaining / target)
             if s.finishedAt != nil {
                 value = "Bitti"
                 // Yanıp sönme: tek saniyelerde kırmızı, çiftlerde normal
@@ -106,23 +109,21 @@ final class StatusController: NSObject {
             }
         case .stopwatch:
             let elapsed = s.elapsed(at: now)
-            kind = .stopwatch(Int(elapsed) % 60)
             value = time(elapsed)
             if !s.isRunning { value += " ⏸" }
         case .pomodoro:
             let phase = s.phase ?? .focus
             let remaining = s.phaseRemaining(at: now)
-            kind = phase == .focus ? .remaining(remaining / max(s.phaseLength ?? 1, 1)) : .away
+            if phase != .focus { kind = MenuBarIcon.away }
             value = time(remaining, up: true)
             if !s.isRunning { value += " ⏸" }
             if warn && phase == .focus && remaining <= 60 { color = .systemOrange }
             if model.alertingSince != nil && Int(now.timeIntervalSince1970) % 2 == 1 { color = .systemRed }
         case .shift:
             if s.side == .away {
-                kind = .away
+                kind = MenuBarIcon.away
                 value = time(s.currentStretch(at: now))
             } else {
-                kind = .work
                 value = time(s.total(.work, at: now))
             }
         }

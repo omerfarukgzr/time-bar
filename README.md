@@ -29,7 +29,7 @@ Süreler bitiş saatinden hesaplanır. Mac uykuya geçse ya da uygulama kapanıp
 
 ## Ayarlar
 
-- Süreyi ve adı menü çubuğunda göster ya da gizle (sadece ikon kalır, ikondaki halka ilerlemeyi gösterir)
+- Süreyi ve adı menü çubuğunda göster ya da gizle (sadece modun ikonu kalır)
 - Süre biçimi: `1:05:00` ya da `1 sa 5 dk`
 - Bitiş sesi, Dock'ta göster, Mac açılınca başlat, güncellemeleri denetle
 
