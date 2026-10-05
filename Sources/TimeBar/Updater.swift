@@ -28,11 +28,11 @@ enum Updater {
         let zip = staging.appendingPathComponent("TimeBar.zip")
         guard (try? fm.moveItem(at: file, to: zip)) != nil else { throw Failure.download }
 
-        if let expected = update.sha256 {
-            guard let data = try? Data(contentsOf: zip, options: .mappedIfSafe) else { throw Failure.download }
-            let digest = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
-            guard digest == expected.lowercased() else { throw Failure.checksum }
-        }
+        // Özet zorunlu: doğrulanamayan dosya kurulmaz
+        guard let expected = update.sha256 else { throw Failure.checksum }
+        guard let data = try? Data(contentsOf: zip, options: .mappedIfSafe) else { throw Failure.download }
+        let digest = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+        guard digest == expected.lowercased() else { throw Failure.checksum }
 
         let unpacked = staging.appendingPathComponent("unpacked")
         guard run("/usr/bin/ditto", ["-x", "-k", zip.path, unpacked.path]) else { throw Failure.unpack }

@@ -26,6 +26,7 @@ struct HistoryPage: View {
     }
 
     var body: some View {
+        let shifts = self.shifts
         if model.history.isEmpty {
             Card {
                 InfoRow("chart.bar.xaxis", "Henüz biten mesai yok",
@@ -33,8 +34,8 @@ struct HistoryPage: View {
             }
         } else {
             weekBar
-            Card { chart.padding(14) }
-            stats
+            Card { chart(shifts).padding(14) }
+            stats(shifts)
             SectionLabel(shifts.isEmpty ? "Bu hafta biten mesai yok" : "Mesailer")
             if !shifts.isEmpty {
                 VStack(spacing: 10) {
@@ -93,7 +94,7 @@ struct HistoryPage: View {
         var id: String { "\(day.timeIntervalSince1970)\(kind)" }
     }
 
-    private var bars: [DayBar] {
+    private func bars(_ shifts: [Summary]) -> [DayBar] {
         (0..<7).flatMap { offset -> [DayBar] in
             let day = calendar.date(byAdding: .day, value: offset, to: weekStart)!
             let next = calendar.date(byAdding: .day, value: 1, to: day)!
@@ -105,8 +106,8 @@ struct HistoryPage: View {
         }
     }
 
-    private var chart: some View {
-        Chart(bars) { bar in
+    private func chart(_ shifts: [Summary]) -> some View {
+        Chart(bars(shifts)) { bar in
             BarMark(x: .value("Gün", bar.day, unit: .day), y: .value("Saat", bar.hours))
                 .foregroundStyle(by: .value("Tür", bar.kind))
                 .cornerRadius(3)
@@ -129,7 +130,7 @@ struct HistoryPage: View {
 
     // MARK: Özet
 
-    private var stats: some View {
+    private func stats(_ shifts: [Summary]) -> some View {
         let work = shifts.reduce(0) { $0 + $1.total(.work) }
         let away = shifts.reduce(0) { $0 + $1.total(.away) }
         let days = Set(shifts.map { calendar.startOfDay(for: $0.start) }).count
@@ -168,7 +169,11 @@ struct HistoryPage: View {
         let date = DateFormatter()
         date.dateFormat = "yyyy-MM-dd HH:mm"
         func minutes(_ t: TimeInterval) -> String { String(Int((t / 60).rounded())) }
-        func field(_ s: String) -> String { "\"" + s.replacingOccurrences(of: "\"", with: "\"\"") + "\"" }
+        // Ad =, +, -, @ ile başlıyorsa Excel onu formül sayıp çalıştırır; başına ' koyup düz yazı yap
+        func field(_ s: String) -> String {
+            let safe = ["=", "+", "-", "@", "\t", "\r"].contains(where: s.hasPrefix) ? "'" + s : s
+            return "\"" + safe.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+        }
         var lines = ["Ad;Başlangıç;Bitiş;Toplam (dk);Çalışma (dk);Mola (dk);Mola sayısı;En uzun çalışma (dk)"]
         for s in model.history.sorted(by: { $0.start < $1.start }) {
             lines.append([field(s.name), date.string(from: s.start), date.string(from: s.end), minutes(s.span),

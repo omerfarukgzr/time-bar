@@ -6,7 +6,10 @@ import ServiceManagement
 @MainActor
 final class Model: ObservableObject {
     @Published private(set) var session: Session? { didSet { save() } }
-    @Published private(set) var now = Date()
+    /// Saniyelik saat. Model'in objectWillChange'ini her saniye tetiklemesin diye ayrı nesne:
+    /// yoksa Ayarlar'ın bütün sayfaları (Geçmiş grafiği dahil) her saniye yeniden çizilir.
+    let clock = Clock()
+    private(set) var now = Date() { didSet { clock.now = now } }
     /// Geri sayım bitti, menü çubuğu kırmızı yanıp sönüyor.
     @Published private(set) var alertingSince: Date?
     /// Biten mesainin panelde gösterilen özeti.
@@ -28,7 +31,7 @@ final class Model: ObservableObject {
     init() {
         session = load(Session.self, "session")
         recents = load([Preset].self, "recents") ?? []
-        history = load([Summary].self, "history") ?? []
+        history = Self.loadHistory()
         restartTicker()
 
         update = UpdateChecker.stored
@@ -42,6 +45,14 @@ final class Model: ObservableObject {
             MainActor.assumeIsolated { self?.screenLocked() }
         }
         center.addObserver(forName: .init("com.apple.screenIsUnlocked"), object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.screenUnlocked() }
+        }
+        // Kapak kapanıp Mac şifre sormadan uyursa kilit bildirimi gelmez; uykuyu da kilit gibi say
+        let workspace = NSWorkspace.shared.notificationCenter
+        workspace.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.screenLocked() }
+        }
+        workspace.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.screenUnlocked() }
         }
     }
@@ -150,7 +161,7 @@ final class Model: ObservableObject {
             let summary = Summary(session: session, end: Date())
             history.insert(summary, at: 0)
             history = Array(history.prefix(2000))
-            store(history, "history")
+            saveHistory()
             shownSummary = summary
         }
         dismiss()
@@ -171,12 +182,12 @@ final class Model: ObservableObject {
 
     func clearHistory() {
         history = []
-        store(history, "history")
+        saveHistory()
     }
 
     func deleteSummary(_ summary: Summary) {
         history.removeAll { $0.id == summary.id }
-        store(history, "history")
+        saveHistory()
         if shownSummary?.id == summary.id { shownSummary = nil }
     }
 
@@ -203,7 +214,7 @@ final class Model: ObservableObject {
         ticker = nil
         now = Date()
         guard session != nil else { return }
-        check()
+        _ = check() // geçiş olduysa da zaten yeni zamanlayıcı kuruyoruz
         let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.tick() }
         }
@@ -214,34 +225,39 @@ final class Model: ObservableObject {
 
     private func tick() {
         now = Date()
-        check()
+        // Aşama ya da sayaç bittiyse tikleri yeni aralığın başına hizala
+        if check() { restartTicker() }
         // 30 saniye yanıp söndükten sonra sabit kırmızıda kal
         if let since = alertingSince, now.timeIntervalSince(since) > 30 { alertingSince = nil }
     }
 
-    private func check() {
-        guard var s = session else { return }
+    /// Süre dolmuş mu bakar, dolduysa durumu ilerletir. Durum değiştiyse true döner.
+    /// Zamanlayıcıyı burada yeniden kurmuyoruz: restartTicker de check'i çağırdığı için
+    /// iç içe kurulan zamanlayıcının eskisi durdurulmadan kalıyordu.
+    private func check() -> Bool {
+        guard var s = session else { return false }
         switch s.mode {
         case .countdown:
-            guard s.finishedAt == nil, s.isRunning, let target = s.target, s.elapsed(at: now) >= target else { return }
+            guard s.finishedAt == nil, s.isRunning, let target = s.target, s.elapsed(at: now) >= target else { return false }
             // Bitişi tam hedefe denk gelen ana sabitle; tik gecikmesi süreye eklenmesin
             let end = now.addingTimeInterval(target - s.elapsed(at: now))
             s.close(at: end)
             s.finishedAt = end
             session = s
             alertingSince = now
-            restartTicker()
             Sounds.play()
             Notifier.shared.post(.countdownFinished, title: "\(s.name) bitti",
                                  body: "\(TimeFormat.words(target)) doldu.")
+            return true
         case .shift:
-            guard let target = s.target, !s.targetNotified, s.span(at: now) >= target else { return }
+            guard let target = s.target, !s.targetNotified, s.span(at: now) >= target else { return false }
             s.targetNotified = true
             session = s
             Sounds.play()
             let work = TimeFormat.words(s.total(.work, at: now))
             Notifier.shared.post(.shiftTarget, title: "\(TimeFormat.words(target)) doldu",
                                  body: "\(s.name): \(work) çalıştın. Bitirmek için dokun.")
+            return false
         case .pomodoro:
             var changed = false
             var finished: Phase?
@@ -253,17 +269,17 @@ final class Model: ObservableObject {
                 s.advancePhase(at: end, running: PomodoroSettings.autoStart)
                 changed = true
             }
-            guard changed, let finished, let next = s.phase else { return }
+            guard changed, let finished, let next = s.phase else { return false }
             session = s
             alertingSince = now
-            restartTicker()
             Sounds.play()
             let length = TimeFormat.words(s.phaseLength ?? 0)
             let title = finished == .focus ? "Odak bitti, \(length) \(next.title.lowercased())" : "Mola bitti, odaklanma zamanı"
             let body = PomodoroSettings.autoStart ? "\(next.title) başladı." : "Başlatmak için Time Bar'a sağ tıkla."
             Notifier.shared.post(.pomodoroPhase, title: title, body: body)
+            return true
         case .stopwatch:
-            break
+            return false
         }
     }
 
@@ -287,6 +303,37 @@ final class Model: ObservableObject {
 
     private func save() {
         if let session { store(session, "session") } else { defaults.removeObject(forKey: "session") }
+    }
+
+    /// Geçmiş UserDefaults'ta değil kendi dosyasında: UserDefaults bütün plist'i her değişiklikte
+    /// yeniden yazıyor; yüzlerce mesailik geçmiş, her çalışma/mola geçişinde megabaytlarca yazma demekti.
+    static var historyURL: URL {
+        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("Time Bar", isDirectory: true)
+        return dir.appendingPathComponent("history.json")
+    }
+
+    private static func loadHistory() -> [Summary] {
+        let decoder = JSONDecoder()
+        if let data = try? Data(contentsOf: historyURL), let list = try? decoder.decode([Summary].self, from: data) {
+            return list
+        }
+        // Eski sürüm geçmişi UserDefaults'ta tutuyordu; dosyaya taşı
+        guard let data = UserDefaults.standard.data(forKey: "history"),
+              let list = try? decoder.decode([Summary].self, from: data) else { return [] }
+        if write(list) { UserDefaults.standard.removeObject(forKey: "history") }
+        return list
+    }
+
+    private func saveHistory() {
+        _ = Self.write(history)
+    }
+
+    @discardableResult
+    private static func write(_ list: [Summary]) -> Bool {
+        guard let data = try? JSONEncoder().encode(list) else { return false }
+        try? FileManager.default.createDirectory(at: historyURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        return (try? data.write(to: historyURL, options: .atomic)) != nil
     }
 
     private func store<T: Encodable>(_ value: T, _ key: String) {
@@ -316,7 +363,8 @@ final class Model: ObservableObject {
     /// Yeni sürümü indirip kurar ve uygulamayı yeniden başlatır. Yerinde kurulamıyorsa Releases sayfasını açar.
     func installUpdate() {
         guard let update, updateStatus != .installing else { return }
-        guard update.download != nil, Updater.canInstall else {
+        // GitHub'ın verdiği SHA-256 yoksa indirileni doğrulayamayız; o zaman elle indirilsin
+        guard update.download != nil, update.sha256 != nil, Updater.canInstall else {
             NSWorkspace.shared.open(update.url)
             return
         }
@@ -340,6 +388,11 @@ final class Model: ObservableObject {
             if newValue { try? SMAppService.mainApp.register() } else { try? SMAppService.mainApp.unregister() }
         }
     }
+}
+
+@MainActor
+final class Clock: ObservableObject {
+    @Published var now = Date()
 }
 
 enum Sounds {

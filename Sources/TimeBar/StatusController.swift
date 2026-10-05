@@ -2,7 +2,7 @@ import AppKit
 import Combine
 import SwiftUI
 
-/// Menü çubuğundaki ikon + süre. Sol tık paneli açar, sağ tık hızlı menüyü.
+/// Menü çubuğundaki ikon + süre. Sol tık paneli açar, sağ tık durumu tersine çevirir.
 @MainActor
 final class StatusController: NSObject {
     private let model: Model
@@ -23,6 +23,7 @@ final class StatusController: NSObject {
 
         let content = PanelContent(openSettings: { [weak self] in self?.showSettings() })
             .environmentObject(model)
+            .environmentObject(model.clock)
         hosting = NSHostingView(rootView: AnyView(content))
         hosting.sizingOptions = [.intrinsicContentSize]
         hosting.postsFrameChangedNotifications = true
@@ -40,7 +41,7 @@ final class StatusController: NSObject {
             button.imagePosition = .imageLeading
         }
 
-        model.$now.combineLatest(model.$session, model.$alertingSince, model.$update)
+        model.clock.$now.combineLatest(model.$session, model.$alertingSince, model.$update)
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.refresh() }
             .store(in: &cancellables)

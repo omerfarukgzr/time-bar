@@ -236,10 +236,11 @@ struct Chip: View {
 
 struct CountdownView: View {
     @EnvironmentObject var model: Model
+    @EnvironmentObject var clock: Clock
     let session: Session
 
     var body: some View {
-        let now = model.now
+        let now = clock.now
         let target = max(session.target ?? 1, 1)
         let remaining = session.remaining(at: now)
         let finished = session.finishedAt != nil
@@ -286,12 +287,13 @@ struct CountdownView: View {
 
 struct StopwatchView: View {
     @EnvironmentObject var model: Model
+    @EnvironmentObject var clock: Clock
     let session: Session
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Header(session: session)
-            Text(TimeFormat.clock(session.elapsed(at: model.now)))
+            Text(TimeFormat.clock(session.elapsed(at: clock.now)))
                 .font(.system(size: 38, weight: .light).monospacedDigit())
                 .frame(maxWidth: .infinity)
             Text(session.isRunning ? "\(TimeFormat.hour(session.startedAt))'de başladı" : "Duraklatıldı")
@@ -313,10 +315,11 @@ struct StopwatchView: View {
 
 struct PomodoroView: View {
     @EnvironmentObject var model: Model
+    @EnvironmentObject var clock: Clock
     let session: Session
 
     var body: some View {
-        let now = model.now
+        let now = clock.now
         let phase = session.phase ?? .focus
         let length = max(session.phaseLength ?? 1, 1)
         let remaining = session.phaseRemaining(at: now)
@@ -363,7 +366,7 @@ struct PomodoroView: View {
     private func caption(phase: Phase) -> String {
         let next = PomodoroSettings.next(after: phase, round: (session.round ?? 0) + (phase == .focus ? 1 : 0))
         let nextText = "Sıradaki: \(TimeFormat.words(PomodoroSettings.length(next))) \(next.title.lowercased())"
-        if !session.isRunning { return session.phaseElapsed(at: model.now) == 0 ? "Hazır · \(nextText)" : "Duraklatıldı · \(nextText)" }
+        if !session.isRunning { return session.phaseElapsed(at: clock.now) == 0 ? "Hazır · \(nextText)" : "Duraklatıldı · \(nextText)" }
         return nextText
     }
 }
@@ -372,11 +375,12 @@ struct PomodoroView: View {
 
 struct ShiftView: View {
     @EnvironmentObject var model: Model
+    @EnvironmentObject var clock: Clock
     let session: Session
     @State private var confirmFinish = false
 
     var body: some View {
-        let now = model.now
+        let now = clock.now
         let work = session.total(.work, at: now)
         let away = session.total(.away, at: now)
         VStack(alignment: .leading, spacing: 10) {

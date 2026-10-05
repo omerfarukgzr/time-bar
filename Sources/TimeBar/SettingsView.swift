@@ -315,7 +315,7 @@ struct ModesPage: View {
                 .labelsHidden()
                 .fixedSize()
             }
-            SettingRow("Ekran kilitlenince molaya geç", "Kilidi açınca çalışmaya geri döner. Kalkarken tuşa basmayı unutursan işe yarar.") {
+            SettingRow("Ekran kilitlenince molaya geç", "Mac kilitlenince ya da uyuyunca molaya geçer, açınca çalışmaya döner. Kalkarken tuşa basmayı unutursan işe yarar.") {
                 Toggle("", isOn: $awayOnLock).labelsHidden()
             }
         }

@@ -75,12 +75,16 @@ final class HotKey {
         register(Shortcut.saved)
     }
 
-    func register(_ shortcut: Shortcut?) {
+    /// Kısayolu etkinleştirir. Sistem ya da başka bir uygulama o tuşu ayırdıysa false döner.
+    @discardableResult
+    func register(_ shortcut: Shortcut?) -> Bool {
         unregister()
-        guard let shortcut else { return }
+        guard let shortcut else { return true }
         installHandler()
         let id = EventHotKeyID(signature: OSType(0x544D_4252), id: 1) // "TMBR"
-        RegisterEventHotKey(shortcut.keyCode, shortcut.carbonModifiers, id, GetApplicationEventTarget(), 0, &ref)
+        let status = RegisterEventHotKey(shortcut.keyCode, shortcut.carbonModifiers, id, GetApplicationEventTarget(), 0, &ref)
+        if status != noErr { ref = nil }
+        return status == noErr
     }
 
     func unregister() {
@@ -104,14 +108,14 @@ struct ShortcutRecorder: View {
     @State private var shortcut = Shortcut.saved
     @State private var recording = false
     @State private var monitor: Any?
-    @State private var invalid = false
+    @State private var message: String?
 
     var body: some View {
         HStack(spacing: 6) {
             Button {
                 recording ? stop() : record()
             } label: {
-                Text(recording ? (invalid ? "⌘, ⌥ ya da ⌃ ile birlikte" : "Tuşlara bas…") : shortcut?.display ?? "Kısayol ata")
+                Text(recording ? (message ?? "Tuşlara bas…") : shortcut?.display ?? "Kısayol ata")
                     .monospacedDigit()
                     .frame(minWidth: 110)
             }
@@ -133,7 +137,7 @@ struct ShortcutRecorder: View {
 
     private func record() {
         recording = true
-        invalid = false
+        message = nil
         HotKey.shared.unregister() // mevcut kısayola basınca da yakalanabilsin
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             if event.keyCode == 53 { // Esc: vazgeç
@@ -141,7 +145,12 @@ struct ShortcutRecorder: View {
                 return nil
             }
             guard let new = Shortcut(event: event) else {
-                invalid = true
+                message = "⌘, ⌥ ya da ⌃ ile birlikte"
+                return nil
+            }
+            // Tuş başka yerde ayrılmışsa kaydetme; kullanıcı kısayolun çalıştığını sanmasın
+            guard HotKey.shared.register(new) else {
+                message = "\(new.display) kullanımda, başka dene"
                 return nil
             }
             shortcut = new
