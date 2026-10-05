@@ -234,7 +234,7 @@ struct ShortcutPage: View {
             InfoRow("cursorarrow.click.2", "Menü çubuğunda sağ tık", "Kısayolla aynı işi yapar. Paneli açmak için sol tıkla.")
             InfoRow("briefcase", "Mesai", "Çalışmadaysan molaya, moladaysan çalışmaya geçer.")
             InfoRow("timer", "Geri sayım, kronometre, pomodoro", "Duraklatır ya da devam ettirir. Geri sayım bittiyse kapatır.")
-            InfoRow("play", "Sayaç yokken", "En son başlattığın sayacı aynı ayarla başlatır. Hiç yoksa paneli açar.")
+            InfoRow("play", "Sayaç yokken", "Menü çubuğunda ikonu görünen modu, Modlar sayfasındaki varsayılan süreyle başlatır.")
         }
     }
 }

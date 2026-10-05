@@ -22,7 +22,7 @@ Hangi modların panelde görüneceğini ve her birinin ayrıntılı ayarlarını
 ## Kullanım
 
 - **Sol tık:** Panel açılır. Yeni sayaç başlatılır, süren sayaç yönetilir.
-- **Sağ tık:** Menü açmaz, o anki durumun tersine geçer. Mesaide çalışmadaysan molaya, moladaysan çalışmaya geçer; diğer modlarda duraklatır ya da devam ettirir. Sayaç yoksa en son başlattığını başlatır.
+- **Sağ tık:** Menü açmaz, o anki durumun tersine geçer. Mesaide çalışmadaysan molaya, moladaysan çalışmaya geçer; diğer modlarda duraklatır ya da devam ettirir. Sayaç yoksa menü çubuğunda ikonu görünen modu varsayılan süresiyle başlatır.
 - **Kısayol:** Ayarlar'dan istediğin tuşu atarsın, sağ tıkla aynı işi yapar.
 
 Süreler bitiş saatinden hesaplanır. Mac uykuya geçse ya da uygulama kapanıp açılsa da sayaç kaymaz, kaldığı yerden devam eder.

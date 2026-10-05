@@ -68,13 +68,14 @@ final class Model: ObservableObject {
     }
 
     /// Kısayolun ve sağ tıkın yaptığı iş: o anki durumun tersine geçer.
-    /// Sayaç yoksa son kullanılanı başlatır; başlatacak bir şey yoksa false döner.
-    @discardableResult
-    func primaryAction() -> Bool {
+    /// Sayaç yoksa menü çubuğunda ikonu görünen modu Ayarlar'daki varsayılan süreyle başlatır;
+    /// ad, o modda en son kullanılan ad olur.
+    func primaryAction() {
         guard let session else {
-            guard let last = recents.first else { return false }
-            start(last)
-            return true
+            let mode = Mode.selected
+            let name = recents.first { $0.mode == mode }?.name ?? mode.title
+            start(Preset(name: name, mode: mode, target: mode.defaultTarget))
+            return
         }
         switch session.mode {
         case .shift:
@@ -84,11 +85,10 @@ final class Model: ObservableObject {
         case .countdown, .stopwatch, .pomodoro:
             session.isRunning ? pause() : resume()
         }
-        return true
     }
 
     var primaryTitle: String {
-        guard let session else { return recents.first.map { "\($0.name) başlat" } ?? "Başlat" }
+        guard let session else { return "\(Mode.selected.title) başlat" }
         switch session.mode {
         case .shift: return session.side == .away ? "Çalışmaya dön" : "Molaya geç"
         case .countdown where session.finishedAt != nil: return "Tamam"

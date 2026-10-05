@@ -25,6 +25,28 @@ enum Mode: String, Codable, CaseIterable, Identifiable {
 
     static let enabledKey = "enabledModes"
 
+    /// Panelde seçili mod; sayaç yokken menü çubuğunda bunun ikonu görünür.
+    static var selected: Mode {
+        let modes = enabled
+        let last = UserDefaults.standard.string(forKey: "lastMode").flatMap(Mode.init(rawValue:))
+        return last.flatMap { modes.contains($0) ? $0 : nil } ?? modes[0]
+    }
+
+    /// Ayarlar › Modlar'daki varsayılan süre (geri sayım ve mesai için).
+    var defaultTarget: TimeInterval? {
+        let d = UserDefaults.standard
+        switch self {
+        case .countdown:
+            let m = d.object(forKey: "countdownMinutes") as? Int ?? 60
+            return TimeInterval(max(m, 1) * 60)
+        case .shift:
+            let m = d.object(forKey: "shiftMinutes") as? Int ?? 480
+            return m > 0 ? TimeInterval(m * 60) : nil
+        case .stopwatch, .pomodoro:
+            return nil
+        }
+    }
+
     /// Panelde gösterilen modlar (Ayarlar › Modlar). En az biri hep açık.
     static var enabled: [Mode] {
         let raw = UserDefaults.standard.string(forKey: enabledKey) ?? allCases.map(\.rawValue).joined(separator: ",")

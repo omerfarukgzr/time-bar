@@ -80,9 +80,7 @@ final class StatusController: NSObject {
 
         // Sayaç yokken panelde seçili modun ikonu
         guard let s = model.session else {
-            let selected = defaults.string(forKey: "lastMode").flatMap(Mode.init(rawValue:))
-            let modes = Mode.enabled
-            return ((selected.flatMap { modes.contains($0) ? $0 : nil } ?? modes[0]).symbol, "", nil)
+            return (Mode.selected.symbol, "", nil)
         }
         let now = model.now
         func time(_ t: TimeInterval, up: Bool = false) -> String {
@@ -140,7 +138,7 @@ final class StatusController: NSObject {
     // MARK: Tıklama
 
     /// Sol tık paneli açar. Sağ tık (ya da ⌃ tık) menü açmaz, o anki durumun tersine geçer:
-    /// mesaide çalışma ↔ mola, diğerlerinde duraklat ↔ devam et. Sayaç yoksa son kullanılanı başlatır.
+    /// mesaide çalışma ↔ mola, diğerlerinde duraklat ↔ devam et. Sayaç yoksa ikonu görünen modu başlatır.
     @objc private func clicked() {
         let event = NSApp.currentEvent
         let right = event?.type == .rightMouseUp || event?.modifierFlags.contains(.control) == true
@@ -153,9 +151,9 @@ final class StatusController: NSObject {
         }
     }
 
-    /// Kısayola basıldı ya da sağ tıklandı. Başlatacak bir şey yoksa paneli açar.
+    /// Kısayola basıldı ya da sağ tıklandı.
     func hotKeyPressed() {
-        if !model.primaryAction() { openPanel() }
+        model.primaryAction()
     }
 
     // MARK: Panel
