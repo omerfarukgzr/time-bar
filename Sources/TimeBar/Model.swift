@@ -51,6 +51,12 @@ final class Model: ObservableObject {
     func start(_ preset: Preset) {
         let now = Date()
         var s = Session(name: preset.name, mode: preset.mode, target: preset.target, startedAt: now)
+        if preset.mode == .pomodoro {
+            s.phase = .focus
+            s.round = 0
+            s.phaseStart = 0
+            s.phaseLength = PomodoroSettings.length(.focus)
+        }
         s.open(.work, at: now)
         alertingSince = nil
         shownSummary = nil
@@ -61,7 +67,7 @@ final class Model: ObservableObject {
         restartTicker()
     }
 
-    /// Kısayolun ve sağ tık menüsündeki ilk satırın yaptığı iş.
+    /// Kısayolun ve sağ tıkın yaptığı iş: o anki durumun tersine geçer.
     /// Sayaç yoksa son kullanılanı başlatır; başlatacak bir şey yoksa false döner.
     @discardableResult
     func primaryAction() -> Bool {
@@ -75,7 +81,7 @@ final class Model: ObservableObject {
             toggleSide()
         case .countdown where session.finishedAt != nil:
             dismiss()
-        case .countdown, .stopwatch:
+        case .countdown, .stopwatch, .pomodoro:
             session.isRunning ? pause() : resume()
         }
         return true
@@ -86,6 +92,8 @@ final class Model: ObservableObject {
         switch session.mode {
         case .shift: return session.side == .away ? "Çalışmaya dön" : "Molaya geç"
         case .countdown where session.finishedAt != nil: return "Tamam"
+        case .pomodoro where !session.isRunning && session.phaseElapsed(at: now) == 0:
+            return "\((session.phase ?? .focus).title) başlat"
         default: return session.isRunning ? "Duraklat" : "Devam et"
         }
     }
@@ -95,7 +103,14 @@ final class Model: ObservableObject {
     }
 
     func resume() {
-        modify { $0.open(.work, at: Date()) }
+        modify { $0.open($0.phase?.side ?? .work, at: Date()) }
+    }
+
+    /// Pomodoro'da o anki aşamayı bitirip sıradakine geçer.
+    func skipPhase() {
+        guard session?.mode == .pomodoro else { return }
+        modify { $0.advancePhase(at: Date(), running: true) }
+        alertingSince = nil
     }
 
     func setSide(_ side: Side) {
@@ -165,11 +180,6 @@ final class Model: ObservableObject {
         if shownSummary?.id == summary.id { shownSummary = nil }
     }
 
-    func removeRecent(_ preset: Preset) {
-        recents.removeAll { $0 == preset }
-        store(recents, "recents")
-    }
-
     private func remember(_ preset: Preset) {
         recents.removeAll { $0 == preset }
         recents.insert(preset, at: 0)
@@ -232,6 +242,26 @@ final class Model: ObservableObject {
             let work = TimeFormat.words(s.total(.work, at: now))
             Notifier.shared.post(.shiftTarget, title: "\(TimeFormat.words(target)) doldu",
                                  body: "\(s.name): \(work) çalıştın. Bitirmek için dokun.")
+        case .pomodoro:
+            var changed = false
+            var finished: Phase?
+            // Uygulama kapalıyken birkaç aşama geçmiş olabilir; hepsini sırayla işle
+            for _ in 0..<50 {
+                guard s.isRunning, let length = s.phaseLength, s.phaseElapsed(at: now) >= length else { break }
+                let end = now.addingTimeInterval(length - s.phaseElapsed(at: now))
+                finished = s.phase
+                s.advancePhase(at: end, running: PomodoroSettings.autoStart)
+                changed = true
+            }
+            guard changed, let finished, let next = s.phase else { return }
+            session = s
+            alertingSince = now
+            restartTicker()
+            Sounds.play()
+            let length = TimeFormat.words(s.phaseLength ?? 0)
+            let title = finished == .focus ? "Odak bitti, \(length) \(next.title.lowercased())" : "Mola bitti, odaklanma zamanı"
+            let body = PomodoroSettings.autoStart ? "\(next.title) başladı." : "Başlatmak için Time Bar'a sağ tıkla."
+            Notifier.shared.post(.pomodoroPhase, title: title, body: body)
         case .stopwatch:
             break
         }

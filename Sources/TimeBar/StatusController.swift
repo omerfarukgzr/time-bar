@@ -110,6 +110,15 @@ final class StatusController: NSObject {
             kind = .stopwatch(Int(elapsed) % 60)
             value = time(elapsed)
             if !s.isRunning { value += " ⏸" }
+        case .pomodoro:
+            let phase = s.phase ?? .focus
+            let remaining = s.phaseRemaining(at: now)
+            kind = phase == .focus ? .remaining(remaining / max(s.phaseLength ?? 1, 1)) : .away
+            if phase != .focus { label = phase.title }
+            value = time(remaining, up: true)
+            if !s.isRunning { value += " ⏸" }
+            if warn && phase == .focus && remaining <= 60 { color = .systemOrange }
+            if model.alertingSince != nil && Int(now.timeIntervalSince1970) % 2 == 1 { color = .systemRed }
         case .shift:
             if s.side == .away {
                 kind = .away
@@ -122,7 +131,8 @@ final class StatusController: NSObject {
         }
 
         var parts: [String] = []
-        if showName || (s.mode == .shift && s.side == .away) { parts.append(label) }
+        // Moladayken ad yerine "Mola" yazar; ad gizli olsa da hangi tarafta olduğun görünsün
+        if showName || label != name { parts.append(label) }
         if showTime { parts.append(value) }
         // Süre gizliyken de "Bitti" görünsün
         if !showTime && s.finishedAt != nil { parts.append(value) }
@@ -131,71 +141,23 @@ final class StatusController: NSObject {
 
     // MARK: Tıklama
 
+    /// Sol tık paneli açar. Sağ tık (ya da ⌃ tık) menü açmaz, o anki durumun tersine geçer:
+    /// mesaide çalışma ↔ mola, diğerlerinde duraklat ↔ devam et. Sayaç yoksa son kullanılanı başlatır.
     @objc private func clicked() {
         let event = NSApp.currentEvent
         let right = event?.type == .rightMouseUp || event?.modifierFlags.contains(.control) == true
         if model.alertingSince != nil { model.acknowledgeAlert() }
         if right {
             closePanel()
-            showMenu()
+            hotKeyPressed()
         } else {
             isOpen ? closePanel() : openPanel()
         }
     }
 
-    /// Kısayola basıldı. Başlatacak bir şey yoksa paneli açar.
+    /// Kısayola basıldı ya da sağ tıklandı. Başlatacak bir şey yoksa paneli açar.
     func hotKeyPressed() {
         if !model.primaryAction() { openPanel() }
-    }
-
-    private func showMenu() {
-        let menu = NSMenu()
-        menu.autoenablesItems = false
-        let shortcut = Shortcut.saved?.display
-
-        if let s = model.session {
-            let header = NSMenuItem(title: "\(s.name) · \(s.mode.title)", action: nil, keyEquivalent: "")
-            header.isEnabled = false
-            menu.addItem(header)
-            menu.addItem(ActionItem(model.primaryTitle, symbol: primarySymbol(s), hint: shortcut) { [weak self] in
-                self?.model.primaryAction()
-            })
-            if s.mode == .countdown {
-                menu.addItem(ActionItem("+5 dk", symbol: "plus") { [weak self] in self?.model.addFiveMinutes() })
-            }
-            if s.mode != .shift {
-                menu.addItem(ActionItem("Baştan başlat", symbol: "arrow.counterclockwise") { [weak self] in self?.model.restart() })
-            }
-            menu.addItem(ActionItem(s.mode == .shift ? "Mesaiyi bitir" : "Bitir", symbol: "stop.fill") { [weak self] in
-                self?.model.finish()
-                if s.mode == .shift { self?.openPanel() } // özeti göster
-            })
-        } else if model.recents.isEmpty {
-            menu.addItem(ActionItem("Yeni sayaç…", symbol: "plus") { [weak self] in self?.openPanel() })
-        } else {
-            menu.addItem(NSMenuItem.sectionHeader(title: "Başlat"))
-            for (i, preset) in model.recents.enumerated() {
-                menu.addItem(ActionItem("\(preset.name) · \(preset.detail)", symbol: preset.mode.symbol,
-                                        hint: i == 0 ? shortcut : nil) { [weak self] in self?.model.start(preset) })
-            }
-            menu.addItem(ActionItem("Yeni sayaç…", symbol: "plus") { [weak self] in self?.openPanel() })
-        }
-
-        menu.addItem(.separator())
-        menu.addItem(ActionItem("Ayarlar…", symbol: "gearshape", key: ",") { [weak self] in self?.showSettings() })
-        menu.addItem(ActionItem("Çık", symbol: "power", key: "q") { NSApp.terminate(nil) })
-
-        statusItem.menu = menu
-        statusItem.button?.performClick(nil)
-        statusItem.menu = nil
-    }
-
-    private func primarySymbol(_ s: Session) -> String {
-        switch s.mode {
-        case .shift: s.side == .away ? "briefcase.fill" : "cup.and.saucer.fill"
-        case .countdown where s.finishedAt != nil: "checkmark"
-        default: s.isRunning ? "pause.fill" : "play.fill"
-        }
     }
 
     // MARK: Panel
@@ -248,26 +210,4 @@ final class StatusController: NSObject {
         NSApp.activate(ignoringOtherApps: true)
         settingsWindow?.makeKeyAndOrderFront(nil)
     }
-}
-
-/// Kapanışla çalışan menü satırı.
-final class ActionItem: NSMenuItem {
-    private let handler: () -> Void
-
-    init(_ title: String, symbol: String? = nil, key: String = "", hint: String? = nil, handler: @escaping () -> Void) {
-        self.handler = handler
-        super.init(title: title, action: #selector(run), keyEquivalent: key)
-        target = self
-        if let symbol { image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil) }
-        // Kullanıcının kısayolu NSMenuItem'a doğrudan atanamıyor (her tuş olabiliyor); sağda soluk yazı olarak göster
-        if let hint {
-            let text = NSMutableAttributedString(string: title)
-            text.append(NSAttributedString(string: "   \(hint)", attributes: [.foregroundColor: NSColor.tertiaryLabelColor]))
-            attributedTitle = text
-        }
-    }
-
-    required init(coder: NSCoder) { fatalError() }
-
-    @objc private func run() { handler() }
 }

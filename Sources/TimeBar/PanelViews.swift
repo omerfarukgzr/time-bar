@@ -21,6 +21,7 @@ struct PanelContent: View {
                 case .countdown: CountdownView(session: session)
                 case .stopwatch: StopwatchView(session: session)
                 case .shift: ShiftView(session: session)
+                case .pomodoro: PomodoroView(session: session)
                 }
             } else if let summary = model.shownSummary {
                 SummaryView(summary: summary)
@@ -54,31 +55,34 @@ struct PanelContent: View {
 
 struct NewSessionView: View {
     @EnvironmentObject var model: Model
-    @AppStorage("lastMode") private var mode: Mode = .countdown
+    @AppStorage("lastMode") private var lastMode: Mode = .countdown
+    @AppStorage(Mode.enabledKey) private var enabledRaw = ""
+    @AppStorage("countdownMinutes") private var countdownDefault = 60
+    @AppStorage("shiftMinutes") private var shiftDefault = 480
     @State private var name = ""
     @State private var hours = 1
     @State private var minutes = 0
     @State private var hasTarget = true
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Picker("", selection: $mode) {
-                ForEach(Mode.allCases) { Text($0.title).tag($0) }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .onChange(of: mode) { applyDefaults() }
+    private var modes: [Mode] { _ = enabledRaw; return Mode.enabled }
+    private var mode: Mode { modes.contains(lastMode) ? lastMode : modes[0] }
 
-            Text(explanation)
-                .font(.system(size: 11.5))
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if modes.count > 1 {
+                ModeTabs(modes: modes, selection: Binding(get: { mode }, set: { lastMode = $0; applyDefaults() }))
+            }
 
             TextField(placeholder, text: $name)
                 .textFieldStyle(.roundedBorder)
+                .controlSize(.large)
                 .onSubmit(start)
 
-            if mode != .stopwatch { durationPicker }
+            switch mode {
+            case .countdown, .shift: durationPicker
+            case .pomodoro: PomodoroPlan()
+            case .stopwatch: EmptyView()
+            }
 
             Button(action: start) {
                 Label("Başlat", systemImage: "play.fill").frame(maxWidth: .infinity)
@@ -87,26 +91,8 @@ struct NewSessionView: View {
             .controlSize(.large)
             .keyboardShortcut(.defaultAction)
             .disabled(mode == .countdown && total == 0)
-
-            if !model.recents.isEmpty {
-                SectionHeader(title: "Son kullanılanlar")
-                VStack(spacing: 0) {
-                    ForEach(model.recents) { preset in
-                        RecentRow(preset: preset)
-                    }
-                }
-                .padding(.horizontal, -6)
-            }
         }
         .onAppear(perform: applyDefaults)
-    }
-
-    private var explanation: String {
-        switch mode {
-        case .countdown: "Süre dolunca bildirim gelir."
-        case .stopwatch: "Sıfırdan yukarı sayar."
-        case .shift: "Satranç saati gibi: çalışırken bir taraf, kalkınca diğer taraf işler. Kısayolla ya da sağ tıkla geçiş yaparsın."
-        }
     }
 
     private var placeholder: String {
@@ -114,6 +100,7 @@ struct NewSessionView: View {
         case .countdown: "Ad (örn. Ders)"
         case .stopwatch: "Ad (örn. Koşu)"
         case .shift: "Ad (örn. Mesai)"
+        case .pomodoro: "Ad (örn. Okuma)"
         }
     }
 
@@ -139,7 +126,7 @@ struct NewSessionView: View {
                     Chip("Hedefsiz", selected: !hasTarget) { hasTarget = false }
                 }
             }
-            if hasTarget || mode == .countdown {
+            if hasTarget {
                 HStack(spacing: 12) {
                     Stepper("\(hours) sa", value: $hours, in: 0...23)
                     Stepper("\(minutes) dk", value: $minutes, in: 0...55, step: 5)
@@ -149,18 +136,75 @@ struct NewSessionView: View {
         }
     }
 
+    /// Ayarlar › Modlar'daki varsayılan süre.
     private func applyDefaults() {
-        hasTarget = true
-        minutes = 0
-        hours = mode == .shift ? 8 : 1
+        let value = mode == .shift ? shiftDefault : countdownDefault
+        hasTarget = value > 0
+        let m = value > 0 ? value : 480
+        hours = m / 60
+        minutes = m % 60
     }
 
     private func start() {
         guard !(mode == .countdown && total == 0) else { return }
         let trimmed = name.trimmingCharacters(in: .whitespaces)
-        let target: TimeInterval? = mode == .stopwatch || (mode == .shift && !hasTarget) || total == 0 ? nil : TimeInterval(total)
-        model.start(Preset(name: trimmed.isEmpty ? mode.title : trimmed, mode: mode, target: target))
+        let timed = (mode == .countdown || mode == .shift) && hasTarget && total > 0
+        model.start(Preset(name: trimmed.isEmpty ? mode.title : trimmed, mode: mode, target: timed ? TimeInterval(total) : nil))
         name = ""
+    }
+}
+
+/// Mod seçici: ikon üstte, ad altta; Ayarlar'daki sekmelere benzer.
+struct ModeTabs: View {
+    let modes: [Mode]
+    @Binding var selection: Mode
+
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(modes) { mode in
+                let selected = mode == selection
+                Button { selection = mode } label: {
+                    VStack(spacing: 3) {
+                        Image(systemName: mode.symbol).font(.system(size: 15))
+                        Text(mode.title).font(.system(size: 10.5, weight: selected ? .semibold : .regular))
+                            .lineLimit(1).minimumScaleFactor(0.85)
+                    }
+                    .foregroundStyle(selected ? Color.accentColor : .secondary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(selected ? Color.accentColor.opacity(0.16) : Color.primary.opacity(0.04)))
+                    .contentShape(RoundedRectangle(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(selected ? .isSelected : [])
+            }
+        }
+    }
+}
+
+/// Pomodoro'nun Ayarlar'dan gelen planı: odak, kısa mola, uzun mola.
+struct PomodoroPlan: View {
+    @AppStorage("pomoFocus") private var focus = 25
+    @AppStorage("pomoShort") private var shortBreak = 5
+    @AppStorage("pomoLong") private var longBreak = 15
+    @AppStorage("pomoRounds") private var rounds = 4
+
+    var body: some View {
+        HStack(spacing: 6) {
+            tile("Odak", focus, .work)
+            tile("Mola", shortBreak, .away)
+            tile("\(rounds) turda bir", longBreak, .away)
+        }
+    }
+
+    private func tile(_ title: String, _ minutes: Int, _ color: Color) -> some View {
+        VStack(spacing: 1) {
+            Text("\(minutes) dk").font(.system(size: 14, weight: .semibold).monospacedDigit())
+            Text(title).font(.system(size: 10.5)).foregroundStyle(color)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 7)
+        .background(RoundedRectangle(cornerRadius: 8).fill(color.opacity(0.1)))
     }
 }
 
@@ -185,31 +229,6 @@ struct Chip: View {
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-    }
-}
-
-struct RecentRow: View {
-    @EnvironmentObject var model: Model
-    let preset: Preset
-    @State private var hover = false
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: hover ? "play.fill" : preset.mode.symbol)
-                .frame(width: 16)
-                .foregroundStyle(hover ? Color.accentColor : .secondary)
-            Text(preset.name).lineLimit(1)
-            Spacer()
-            Text(preset.detail).foregroundStyle(.secondary)
-        }
-        .font(.system(size: 12.5))
-        .rowStyle(hover: hover)
-        .onHover { hover = $0 }
-        .onTapGesture { model.start(preset) }
-        .contextMenu {
-            Button("Listeden kaldır") { model.removeRecent(preset) }
-        }
-        .help("\(preset.name) başlat")
     }
 }
 
@@ -287,6 +306,65 @@ struct StopwatchView: View {
                 Button("Bitir") { model.finish() }
             }
         }
+    }
+}
+
+// MARK: Pomodoro
+
+struct PomodoroView: View {
+    @EnvironmentObject var model: Model
+    let session: Session
+
+    var body: some View {
+        let now = model.now
+        let phase = session.phase ?? .focus
+        let length = max(session.phaseLength ?? 1, 1)
+        let remaining = session.phaseRemaining(at: now)
+        let color: Color = phase == .focus ? .work : .away
+        let rounds = PomodoroSettings.rounds
+        let done = phase == .longBreak ? rounds : (session.round ?? 0) % rounds
+        VStack(alignment: .leading, spacing: 10) {
+            Header(session: session)
+            HStack {
+                Label(phase.title, systemImage: phase == .focus ? "brain.head.profile" : "cup.and.saucer.fill")
+                    .font(.system(size: 11.5, weight: .semibold))
+                    .foregroundStyle(color)
+                    .padding(.horizontal, 8)
+                    .frame(height: 22)
+                    .background(Capsule().fill(color.opacity(0.15)))
+                Spacer()
+                HStack(spacing: 4) {
+                    ForEach(0..<rounds, id: \.self) { i in
+                        Circle()
+                            .fill(i < done ? Color.work : Color.primary.opacity(0.15))
+                            .frame(width: 7, height: 7)
+                    }
+                }
+                .help("\(session.round ?? 0) odak tamamlandı")
+            }
+            Text(TimeFormat.clock(remaining.rounded(.up)))
+                .font(.system(size: 38, weight: .light).monospacedDigit())
+                .frame(maxWidth: .infinity)
+            ProgressView(value: 1 - remaining / length).tint(color)
+            Text(caption(phase: phase))
+                .font(.system(size: 11.5))
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+            HStack {
+                PrimaryButton()
+                Button { model.skipPhase() } label: { Image(systemName: "forward.end.fill") }
+                    .help("Bu aşamayı atla")
+                Spacer()
+                Button("Bitir") { model.finish() }
+            }
+        }
+    }
+
+    private func caption(phase: Phase) -> String {
+        let next = PomodoroSettings.next(after: phase, round: (session.round ?? 0) + (phase == .focus ? 1 : 0))
+        let nextText = "Sıradaki: \(TimeFormat.words(PomodoroSettings.length(next))) \(next.title.lowercased())"
+        if !session.isRunning { return session.phaseElapsed(at: model.now) == 0 ? "Hazır · \(nextText)" : "Duraklatıldı · \(nextText)" }
+        return nextText
     }
 }
 
@@ -553,16 +631,6 @@ struct PrimaryButton: View {
     }
 }
 
-struct SectionHeader: View {
-    let title: String
-    var body: some View {
-        Text(title)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
 struct UpdateRow: View {
     @EnvironmentObject var model: Model
     let update: AvailableUpdate
@@ -610,15 +678,5 @@ struct FooterButton<Label: View>: View {
         }
         .buttonStyle(.plain)
         .onHover { hover = $0 }
-    }
-}
-
-extension View {
-    /// Listelerdeki tıklanabilir satır görünümü.
-    func rowStyle(hover: Bool) -> some View {
-        padding(.horizontal, 6)
-            .frame(minHeight: 26)
-            .background(RoundedRectangle(cornerRadius: 6).fill(Color.primary.opacity(hover ? 0.08 : 0)))
-            .contentShape(Rectangle())
     }
 }

@@ -6,7 +6,7 @@ import UserNotifications
 final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     static let shared = Notifier()
 
-    enum Kind: String { case countdownFinished, shiftTarget }
+    enum Kind: String { case countdownFinished, shiftTarget, pomodoroPhase }
 
     weak var model: Model?
     private var center: UNUserNotificationCenter? {

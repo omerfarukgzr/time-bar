@@ -2,7 +2,7 @@
 
 <h1 align="center">Time Bar</h1>
 
-<p align="center">Menü çubuğunda geri sayım, kronometre ve mesai saati.</p>
+<p align="center">Menü çubuğunda geri sayım, kronometre, mesai saati ve pomodoro.</p>
 
 <p align="center"><a href="https://github.com/omerfarukgzr/time-bar/releases/latest/download/TimeBar.zip"><b>⬇ Time Bar'ı indir (macOS)</b></a></p>
 
@@ -14,13 +14,16 @@ Bir ad yaz, süreyi seç, başlat. Sayaç menü çubuğunda ikonuyla birlikte g�
 
 - **Geri sayım:** Süre dolunca bildirim ve ses gelir, menü çubuğu kırmızı yanıp söner. Bildirimden "+5 dk" diyebilirsin. Son dakikada süre turuncuya döner.
 - **Kronometre:** Sıfırdan yukarı sayar, duraklatılabilir.
-- **Mesai:** Satranç saati gibi çalışır. Çalışırken bir taraf, kalkınca diğer taraf işler. Kısayola ya da sağ tıka basınca çalışma ile mola arasında geçer. Mesai bitince özet çıkar: ne kadar çalıştın, ne kadar mola verdin, kaç mola, en uzun kesintisiz çalışma. Geçmiş mesailer panelde listelenir.
+- **Mesai:** Satranç saati gibi çalışır. Çalışırken bir taraf, kalkınca diğer taraf işler. Kısayola ya da sağ tıka basınca çalışma ile mola arasında geçer. Mesai bitince özet çıkar: ne kadar çalıştın, ne kadar mola verdin, kaç mola, en uzun kesintisiz çalışma. Geçmiş mesailer Ayarlar › Geçmiş'te haftalık grafikle listelenir.
+- **Pomodoro:** Odak ve mola aralıklarını sırayla sayar; belirli sayıda odaktan sonra uzun mola gelir. Süreler Ayarlar › Modlar'dan değişir.
+
+Hangi modların panelde görüneceğini ve her birinin ayrıntılı ayarlarını Ayarlar › Modlar'dan seçersin.
 
 ## Kullanım
 
 - **Sol tık:** Panel açılır. Yeni sayaç başlatılır, süren sayaç yönetilir.
-- **Sağ tık:** Hızlı menü. Başlat/duraklat, molaya geç, +5 dk, bitir, son kullanılanlar.
-- **Kısayol:** Ayarlar'dan istediğin tuşu atarsın. Sayaç yoksa son kullanılanı başlatır.
+- **Sağ tık:** Menü açmaz, o anki durumun tersine geçer. Mesaide çalışmadaysan molaya, moladaysan çalışmaya geçer; diğer modlarda duraklatır ya da devam ettirir. Sayaç yoksa en son başlattığını başlatır.
+- **Kısayol:** Ayarlar'dan istediğin tuşu atarsın, sağ tıkla aynı işi yapar.
 
 Süreler bitiş saatinden hesaplanır. Mac uykuya geçse ya da uygulama kapanıp açılsa da sayaç kaymaz, kaldığı yerden devam eder.
 
@@ -28,7 +31,6 @@ Süreler bitiş saatinden hesaplanır. Mac uykuya geçse ya da uygulama kapanıp
 
 - Süreyi ve adı menü çubuğunda göster ya da gizle (sadece ikon kalır, ikondaki halka ilerlemeyi gösterir)
 - Süre biçimi: `1:05:00` ya da `1 sa 5 dk`
-- Ekran kilitlenince molaya geç (mesai)
 - Bitiş sesi, Dock'ta göster, Mac açılınca başlat, güncellemeleri denetle
 
 ## Kurulum

@@ -1,7 +1,7 @@
 import Foundation
 
 enum Mode: String, Codable, CaseIterable, Identifiable {
-    case countdown, stopwatch, shift
+    case countdown, stopwatch, shift, pomodoro
 
     var id: String { rawValue }
 
@@ -10,7 +10,27 @@ enum Mode: String, Codable, CaseIterable, Identifiable {
         case .countdown: "Geri sayım"
         case .stopwatch: "Kronometre"
         case .shift: "Mesai"
+        case .pomodoro: "Pomodoro"
         }
+    }
+
+    var detail: String {
+        switch self {
+        case .countdown: "Süre dolunca bildirim gelir."
+        case .stopwatch: "Sıfırdan yukarı sayar."
+        case .shift: "Satranç saati gibi çalışma ve mola sürelerini ayrı sayar."
+        case .pomodoro: "Odak ve mola aralıklarını sırayla, kendiliğinden sayar."
+        }
+    }
+
+    static let enabledKey = "enabledModes"
+
+    /// Panelde gösterilen modlar (Ayarlar › Modlar). En az biri hep açık.
+    static var enabled: [Mode] {
+        let raw = UserDefaults.standard.string(forKey: enabledKey) ?? allCases.map(\.rawValue).joined(separator: ",")
+        let set = Set(raw.split(separator: ",").map(String.init))
+        let modes = allCases.filter { set.contains($0.rawValue) }
+        return modes.isEmpty ? [.countdown] : modes
     }
 
     var symbol: String {
@@ -18,12 +38,59 @@ enum Mode: String, Codable, CaseIterable, Identifiable {
         case .countdown: "timer"
         case .stopwatch: "stopwatch"
         case .shift: "briefcase"
+        case .pomodoro: "leaf"
         }
     }
 }
 
 /// Mesai modunda saatin hangi tarafı işliyor.
 enum Side: String, Codable { case work, away }
+
+/// Pomodoro aşaması.
+enum Phase: String, Codable {
+    case focus, shortBreak, longBreak
+
+    var side: Side { self == .focus ? .work : .away }
+
+    var title: String {
+        switch self {
+        case .focus: "Odak"
+        case .shortBreak: "Kısa mola"
+        case .longBreak: "Uzun mola"
+        }
+    }
+}
+
+/// Pomodoro ayarları (Ayarlar › Modlar), dakika cinsinden.
+enum PomodoroSettings {
+    static var focus: Int { value("pomoFocus", 25) }
+    static var shortBreak: Int { value("pomoShort", 5) }
+    static var longBreak: Int { value("pomoLong", 15) }
+    /// Kaç odakta bir uzun mola.
+    static var rounds: Int { max(1, value("pomoRounds", 4)) }
+    static var autoStart: Bool { UserDefaults.standard.object(forKey: "pomoAuto") as? Bool ?? true }
+
+    static func length(_ phase: Phase) -> TimeInterval {
+        TimeInterval(60 * {
+            switch phase {
+            case .focus: focus
+            case .shortBreak: shortBreak
+            case .longBreak: longBreak
+            }
+        }())
+    }
+
+    /// round: biten odak sayısı.
+    static func next(after phase: Phase, round: Int) -> Phase {
+        guard phase == .focus else { return .focus }
+        return round % rounds == 0 ? .longBreak : .shortBreak
+    }
+
+    private static func value(_ key: String, _ fallback: Int) -> Int {
+        let v = UserDefaults.standard.integer(forKey: key)
+        return v > 0 ? v : fallback
+    }
+}
 
 /// Saatin kesintisiz işlediği bir aralık. Bitişi yoksa hâlâ işliyor.
 struct Segment: Codable, Equatable {
@@ -47,6 +114,14 @@ struct Session: Codable, Equatable {
     var finishedAt: Date?
     /// Mesai hedefi bildirimi gönderildi mi.
     var targetNotified = false
+    // Pomodoro. Opsiyonel: eski sürümden kalan kayıtlı sayaç da açılabilsin.
+    var phase: Phase?
+    /// Biten odak sayısı.
+    var round: Int?
+    /// Aşamanın başladığı aralığın sırası.
+    var phaseStart: Int?
+    /// Aşama başladığında ayarlardan alınan süre; ortada ayar değişirse sayaç zıplamasın.
+    var phaseLength: TimeInterval?
 
     var current: Segment? {
         guard let last = segments.last, last.end == nil else { return nil }
@@ -71,6 +146,27 @@ struct Session: Codable, Equatable {
     /// Şu anki kesintisiz aralığın süresi ("bu mola 12 dk").
     func currentStretch(at now: Date) -> TimeInterval { current?.duration(at: now) ?? 0 }
 
+    func phaseElapsed(at now: Date) -> TimeInterval {
+        let from = min(phaseStart ?? 0, segments.count)
+        return segments[from...].reduce(0) { $0 + $1.duration(at: now) }
+    }
+
+    func phaseRemaining(at now: Date) -> TimeInterval { max(0, (phaseLength ?? 0) - phaseElapsed(at: now)) }
+
+    /// Pomodoro'da bir sonraki aşamaya geçer. Bitişi "at" anına sabitler; running ise yeni aşama hemen işler.
+    mutating func advancePhase(at date: Date, running: Bool) {
+        close(at: date)
+        let current = phase ?? .focus
+        var done = round ?? 0
+        if current == .focus { done += 1 }
+        let next = PomodoroSettings.next(after: current, round: done)
+        round = done
+        phase = next
+        phaseStart = segments.count
+        phaseLength = PomodoroSettings.length(next)
+        if running { segments.append(Segment(side: next.side, start: date)) }
+    }
+
     mutating func open(_ side: Side, at now: Date) {
         close(at: now)
         segments.append(Segment(side: side, start: now))
@@ -91,6 +187,7 @@ struct Preset: Codable, Equatable, Identifiable {
     var id: String { "\(mode.rawValue)|\(name)|\(target ?? -1)" }
 
     var detail: String {
+        if mode == .pomodoro { return "\(PomodoroSettings.focus)/\(PomodoroSettings.shortBreak) dk" }
         guard let target else { return mode == .shift ? "Hedefsiz" : mode.title }
         return TimeFormat.words(target)
     }

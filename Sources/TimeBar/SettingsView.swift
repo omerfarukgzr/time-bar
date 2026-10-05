@@ -4,7 +4,7 @@ import UserNotifications
 
 /// Ayarlar sayfaları; pencerenin üstündeki sekmelerle aynı sırada.
 enum SettingsPage: Int, CaseIterable, Identifiable {
-    case general, menuBar, shortcut, notifications, shift, history, about
+    case general, modes, menuBar, shortcut, notifications, history, about
 
     var id: Int { rawValue }
 
@@ -14,7 +14,7 @@ enum SettingsPage: Int, CaseIterable, Identifiable {
         case .menuBar: "Menü Çubuğu"
         case .shortcut: "Kısayol"
         case .notifications: "Bildirimler"
-        case .shift: "Mesai"
+        case .modes: "Modlar"
         case .history: "Geçmiş"
         case .about: "Hakkında"
         }
@@ -26,7 +26,7 @@ enum SettingsPage: Int, CaseIterable, Identifiable {
         case .menuBar: "menubar.rectangle"
         case .shortcut: "command"
         case .notifications: "bell.badge"
-        case .shift: "briefcase"
+        case .modes: "square.grid.2x2"
         case .history: "chart.bar.xaxis"
         case .about: "info.circle"
         }
@@ -38,7 +38,7 @@ enum SettingsPage: Int, CaseIterable, Identifiable {
         case .menuBar: "Sayacın menü çubuğunda nasıl göründüğü."
         case .shortcut: "Sayacı klavyeden başlatıp durdurmak için."
         case .notifications: "Süre dolunca ne olacağı."
-        case .shift: "Çalışma ve mola saatinin davranışı."
+        case .modes: "Panelde hangi modların görüneceği ve her birinin ayarları."
         case .history: "Biten mesailer: ne kadar çalıştın, ne kadar mola verdin."
         case .about: "Sürüm, güncellemeler ve kaynak kodu."
         }
@@ -99,7 +99,7 @@ struct SettingsPageView: View {
     var select: (SettingsPage) -> Void = { _ in }
 
     var body: some View {
-        if page == .history {
+        if page == .history || page == .modes {
             // Geçmiş uzayabilir; pencere sabit boyda kalır, sayfa kayar
             ScrollView { content }.frame(width: 560, height: 640)
         } else {
@@ -118,7 +118,7 @@ struct SettingsPageView: View {
             case .menuBar: MenuBarPage()
             case .shortcut: ShortcutPage()
             case .notifications: NotificationsPage()
-            case .shift: ShiftPage()
+            case .modes: ModesPage()
             case .history: HistoryPage()
             case .about: AboutPage()
             }
@@ -140,7 +140,7 @@ struct GeneralPage: View {
     @AppStorage("showTime") private var showTime = true
     @AppStorage("showName") private var showName = true
     @AppStorage(Sounds.key) private var sound = "Glass"
-    @AppStorage(Model.lockKey) private var awayOnLock = false
+    @AppStorage(Mode.enabledKey) private var enabledRaw = ""
     @AppStorage(Shortcut.defaultsKey) private var shortcutData: Data?
 
     var body: some View {
@@ -156,14 +156,14 @@ struct GeneralPage: View {
 
         SectionLabel("Menü")
         Card {
+            NavRow(.modes, "Paneldeki modlar ve ayrıntılı ayarları", value: "\(Mode.enabled.count) mod", select: select)
             NavRow(.menuBar, "Menü çubuğunda süre ve ad", value: menuBarValue, select: select)
             NavRow(.shortcut, "Başlat / durdur tuşu", value: Shortcut.saved?.display ?? "Yok", select: select)
             NavRow(.notifications, "Bitiş sesi ve bildirim", value: sound.isEmpty ? "Sessiz" : sound, select: select)
-            NavRow(.shift, "Ekran kilitlenince molaya geçme", value: awayOnLock ? "Açık" : "Kapalı", select: select)
             NavRow(.history, "Biten mesailer ve haftalık özet", value: "\(model.history.count) mesai", select: select)
             NavRow(.about, "Sürüm ve güncellemeler", value: UpdateChecker.currentVersion, select: select)
         }
-        .id(shortcutData) // kısayol değişince değer yenilensin
+        .id("\(shortcutData?.count ?? 0)\(enabledRaw)") // kısayol ya da modlar değişince değerler yenilensin
     }
 
     private var menuBarValue: String {
@@ -229,11 +229,12 @@ struct ShortcutPage: View {
                 ShortcutRecorder()
             }
         }
-        SectionLabel("Ne yapar")
+        SectionLabel("Kısayol ve sağ tık ne yapar")
         Card {
-            InfoRow("timer", "Geri sayım ve kronometre", "Duraklatır ya da devam ettirir. Süre dolduysa kapatır.")
-            InfoRow("briefcase", "Mesai", "Çalışma ile mola arasında geçer.")
-            InfoRow("play", "Sayaç yokken", "Son kullanılan sayacı başlatır. Hiç yoksa paneli açar.")
+            InfoRow("cursorarrow.click.2", "Menü çubuğunda sağ tık", "Kısayolla aynı işi yapar. Paneli açmak için sol tıkla.")
+            InfoRow("briefcase", "Mesai", "Çalışmadaysan molaya, moladaysan çalışmaya geçer.")
+            InfoRow("timer", "Geri sayım, kronometre, pomodoro", "Duraklatır ya da devam ettirir. Geri sayım bittiyse kapatır.")
+            InfoRow("play", "Sayaç yokken", "En son başlattığın sayacı aynı ayarla başlatır. Hiç yoksa paneli açar.")
         }
     }
 }
@@ -287,15 +288,120 @@ struct NotificationsPage: View {
     }
 }
 
-struct ShiftPage: View {
+struct ModesPage: View {
+    @AppStorage(Mode.enabledKey) private var enabledRaw = Mode.allCases.map(\.rawValue).joined(separator: ",")
+    @AppStorage("countdownMinutes") private var countdownMinutes = 60
+    @AppStorage("shiftMinutes") private var shiftMinutes = 480
     @AppStorage(Model.lockKey) private var awayOnLock = false
+    @AppStorage("pomoFocus") private var focus = 25
+    @AppStorage("pomoShort") private var shortBreak = 5
+    @AppStorage("pomoLong") private var longBreak = 15
+    @AppStorage("pomoRounds") private var rounds = 4
+    @AppStorage("pomoAuto") private var autoStart = true
 
     var body: some View {
-        Card {
+        ModeCard(mode: .countdown, enabled: binding(.countdown)) {
+            SettingRow("Varsayılan süre", "Panel açılınca seçili gelen süre.") {
+                MinutesStepper(minutes: $countdownMinutes, range: 5...600, step: 5)
+            }
+        }
+        ModeCard(mode: .stopwatch, enabled: binding(.stopwatch)) {}
+        ModeCard(mode: .shift, enabled: binding(.shift)) {
+            SettingRow("Varsayılan hedef", "Bu süre dolunca bildirim gelir; mesai yine de devam eder.") {
+                Picker("", selection: $shiftMinutes) {
+                    Text("Hedefsiz").tag(0)
+                    ForEach([4, 5, 6, 7, 8, 9, 10, 12], id: \.self) { Text("\($0) saat").tag($0 * 60) }
+                }
+                .labelsHidden()
+                .fixedSize()
+            }
             SettingRow("Ekran kilitlenince molaya geç", "Kilidi açınca çalışmaya geri döner. Kalkarken tuşa basmayı unutursan işe yarar.") {
                 Toggle("", isOn: $awayOnLock).labelsHidden()
             }
         }
+        ModeCard(mode: .pomodoro, enabled: binding(.pomodoro)) {
+            SettingRow("Odak süresi", "Bir turda kesintisiz çalışılan süre.") {
+                MinutesStepper(minutes: $focus, range: 5...120, step: 5)
+            }
+            SettingRow("Kısa mola", "Her odaktan sonra.") {
+                MinutesStepper(minutes: $shortBreak, range: 1...30, step: 1)
+            }
+            SettingRow("Uzun mola", "Belirli sayıda odaktan sonra.") {
+                MinutesStepper(minutes: $longBreak, range: 5...60, step: 5)
+            }
+            SettingRow("Uzun mola sıklığı", "Kaç odakta bir uzun mola verilecek.") {
+                Stepper("\(rounds) odakta bir", value: $rounds, in: 2...8)
+                    .monospacedDigit()
+                    .fixedSize()
+            }
+            SettingRow("Sonraki aşama kendiliğinden başlasın", "Kapalıyken her aşamadan sonra sayaç bekler; sağ tık ya da kısayolla başlatırsın.") {
+                Toggle("", isOn: $autoStart).labelsHidden()
+            }
+        }
+    }
+
+    private var enabled: Set<String> { Set(enabledRaw.split(separator: ",").map(String.init)) }
+
+    /// Panelde göster anahtarı. Son açık mod kapatılamaz.
+    private func binding(_ mode: Mode) -> Binding<Bool>? {
+        let isOn = enabled.contains(mode.rawValue)
+        guard !(isOn && enabled.count == 1) else { return nil }
+        return Binding(
+            get: { isOn },
+            set: { on in
+                var set = enabled
+                if on { set.insert(mode.rawValue) } else { set.remove(mode.rawValue) }
+                enabledRaw = Mode.allCases.map(\.rawValue).filter(set.contains).joined(separator: ",")
+            }
+        )
+    }
+}
+
+/// Bir modun kartı: başlıkta "panelde göster" anahtarı, altında ayrıntılı ayarları.
+struct ModeCard<Content: View>: View {
+    let mode: Mode
+    /// nil: bu son açık mod, kapatılamaz.
+    let enabled: Binding<Bool>?
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        let on = enabled?.wrappedValue ?? true
+        Card {
+            HStack(spacing: 12) {
+                Image(systemName: mode.symbol)
+                    .font(.system(size: 16))
+                    .foregroundStyle(on ? Color.accentColor : .secondary)
+                    .frame(width: 24)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(mode.title).font(.system(size: 14, weight: .semibold))
+                    Text(mode.detail).font(.system(size: 11.5)).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Toggle("", isOn: enabled ?? .constant(true))
+                    .labelsHidden()
+                    .disabled(enabled == nil)
+                    .help(enabled == nil ? "En az bir mod açık olmalı" : "Panelde göster")
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            // Group şeffaf: her satır kartta ayrı satır olarak kalır, çizgiler korunur
+            Group { content }
+                .disabled(!on)
+                .opacity(on ? 1 : 0.45)
+        }
+    }
+}
+
+/// "25 dk" ya da "1 sa 30 dk" gösteren adım düğmesi.
+struct MinutesStepper: View {
+    @Binding var minutes: Int
+    let range: ClosedRange<Int>
+    let step: Int
+
+    var body: some View {
+        Stepper(TimeFormat.words(TimeInterval(minutes * 60)), value: $minutes, in: range, step: step)
+            .monospacedDigit()
+            .fixedSize()
     }
 }
 
