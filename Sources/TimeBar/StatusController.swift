@@ -169,6 +169,8 @@ final class StatusController: NSObject {
         isOpen = true
         button.highlight(true)
         panel.show()
+        // Son denetimden 1 saat geçtiyse sessizce sor; yeni sürüm panelde hemen görünsün
+        model.checkForUpdate(after: UpdateChecker.menuInterval)
         outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             Task { @MainActor in self?.closePanel() }
         }

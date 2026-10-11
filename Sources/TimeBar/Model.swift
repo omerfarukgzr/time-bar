@@ -19,6 +19,10 @@ final class Model: ObservableObject {
     @Published private(set) var update: AvailableUpdate?
     @Published private(set) var updateStatus: UpdateStatus = .idle
     @Published private(set) var checkingUpdate = false
+    /// GitHub'a son başarılı soru; Ayarlar'da "Son denetim" olarak görünür.
+    @Published private(set) var lastUpdateCheck = UpdateChecker.lastCheck
+    /// Elle başlatılan son denetim GitHub'a ulaşamadı.
+    @Published private(set) var updateCheckFailed = false
 
     enum UpdateStatus { case idle, installing, failed }
 
@@ -352,16 +356,23 @@ final class Model: ObservableObject {
 
     // MARK: Güncelleme
 
-    /// force: Ayarlar'daki "Şimdi denetle"; günlük aralığı beklemez.
-    func checkForUpdate(force: Bool = false) {
+    /// force: Ayarlar'daki "Şimdi denetle"; aralığı beklemez. after: son denetimin üzerinden geçmesi gereken süre.
+    func checkForUpdate(force: Bool = false, after: TimeInterval = UpdateChecker.interval) {
         guard UpdateChecker.isEnabled else {
             if update != nil { update = nil }
             return
         }
+        // Panel açılışı ile saatlik tur aynı anda gelirse GitHub'a iki kez sorma
+        guard !checkingUpdate else { return }
         checkingUpdate = true
+        let before = UpdateChecker.lastCheck
         Task {
-            let found = await UpdateChecker.checkIfDue(force: force)
+            let found = await UpdateChecker.checkIfDue(force: force, after: after)
             if found != update { update = found }
+            let after = UpdateChecker.lastCheck
+            if after != lastUpdateCheck { lastUpdateCheck = after }
+            // Sadece elle denetimde hata göster; zamanı gelmemiş otomatik denetim de tarih değiştirmez
+            if force { updateCheckFailed = after == before } else if after != before { updateCheckFailed = false }
             checkingUpdate = false
         }
     }

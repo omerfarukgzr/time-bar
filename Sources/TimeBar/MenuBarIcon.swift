@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 /// Menü çubuğu ikonu: o anki modun paneldeki ikonu. Sayaç yokken panelde seçili modun ikonu,
-/// molada (mesai ya da pomodoro) kahve fincanı. Yeni sürüm varsa sağ üstte nokta.
+/// molada (mesai ya da pomodoro) kahve fincanı. Yeni sürüm varsa sağ altta indirme rozeti.
 enum MenuBarIcon {
     static let away = "cup.and.saucer.fill"
 
@@ -18,20 +18,44 @@ enum MenuBarIcon {
         // SF Symbol'lerin kutusu çizimi ortalamaz (çantanın altında boşluk kalıyor),
         // menü çubuğu ise kutuyu ortalar. Çizimin gerçek sınırlarını bulup sabit yükseklikte ortalıyoruz.
         let ink = inkBounds(of: base)
-        let size = NSSize(width: ink.width + (badge ? 3 : 0), height: height)
+        let size = NSSize(width: ink.width + (badge ? 4 : 0), height: height)
         let image = NSImage(size: size, flipped: false) { _ in
             // Tam noktaya yuvarla; 1x ekranda yarım nokta yarım piksel olur, çizgiler bulanıklaşır.
             // 1 nokta yukarı: çantanın gövdesi yazıyla aynı hizaya gelsin, sap üstte kalsın.
             let origin = NSPoint(x: -ink.minX, y: ((size.height - ink.height) / 2 - ink.minY).rounded() + 1)
             base.draw(in: NSRect(origin: origin, size: base.size))
-            if badge {
-                NSColor.black.set()
-                NSBezierPath(ovalIn: NSRect(x: size.width - 4, y: size.height - 4, width: 4, height: 4)).fill()
-            }
+            if badge { drawDownloadBadge(right: size.width, bottom: origin.y + ink.minY - 1) }
             return true
         }
         image.isTemplate = true
+        image.accessibilityDescription = badge ? "Time Bar, yeni sürüm var" : "Time Bar"
         return image
+    }
+
+    /// İkonun sağ alt köşesinde içi oyuk aşağı oklu dolu daire. Çevresi silinir ki ikondan ayrı dursun.
+    private static func drawDownloadBadge(right: CGFloat, bottom: CGFloat) {
+        let circle = NSRect(x: right - 7.5, y: max(bottom, 0), width: 7.5, height: 7.5)
+        let context = NSGraphicsContext.current
+        context?.compositingOperation = .clear
+        NSBezierPath(ovalIn: circle.insetBy(dx: -1.1, dy: -1.1)).fill()
+        context?.compositingOperation = .sourceOver
+        NSColor.black.set()
+        NSBezierPath(ovalIn: circle).fill()
+
+        // Ok saydam kalsın: menü çubuğu rengine göre ters renkte görünür (çizim yukarı doğru, ok aşağı bakar)
+        let x = circle.midX
+        let arrow = NSBezierPath()
+        arrow.move(to: NSPoint(x: x, y: circle.maxY - 1.8))
+        arrow.line(to: NSPoint(x: x, y: circle.minY + 1.8))
+        arrow.move(to: NSPoint(x: x - 1.8, y: circle.minY + 3.6))
+        arrow.line(to: NSPoint(x: x, y: circle.minY + 1.8))
+        arrow.line(to: NSPoint(x: x + 1.8, y: circle.minY + 3.6))
+        arrow.lineWidth = 1.1
+        arrow.lineCapStyle = .round
+        arrow.lineJoinStyle = .round
+        context?.compositingOperation = .clear
+        arrow.stroke()
+        context?.compositingOperation = .sourceOver
     }
 
     /// Menü çubuğu ikonunun yüksekliği; çizim bunun içinde dikeyde ortalanır.
