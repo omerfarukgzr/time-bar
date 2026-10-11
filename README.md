@@ -4,7 +4,13 @@
 
 <p align="center">Menü çubuğunda yaşayan, sağ tıkla yönetilen bir zaman sayacı.<br>Geri sayım · Kronometre · Mesai · Pomodoro</p>
 
-<p align="center"><a href="https://github.com/omerfarukgzr/time-bar/releases/latest/download/TimeBar.zip"><b>⬇ TimeBar.zip</b></a> · macOS 14+ · Apple Silicon ve Intel</p>
+<p align="center">Kurmak için Terminal'e yapıştır:</p>
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/omerfarukgzr/time-bar/main/install.sh | bash
+```
+
+<p align="center">ya da <a href="https://github.com/omerfarukgzr/time-bar/releases/latest/download/TimeBar.zip"><b>TimeBar.zip</b></a>'i indir · macOS 14+ · Apple Silicon ve Intel</p>
 
 ---
 
@@ -45,13 +51,13 @@ Aynı anda tek bir sayaç çalışır. Yenisini başlatmak için öncekini bitir
 
 Ayarlar penceresi sekmelere ayrılmış:
 
-- **Genel:** Mac açılınca başlat, Dock'ta göster ve diğer sayfalara kısayollar.
+- **Genel:** Mac açılınca başlat, Dock'ta göster, güncellemeler (son ve sonraki denetim, Şimdi denetle) ve diğer sayfalara kısayollar.
 - **Modlar:** Hangi modların panelde görüneceği ve her modun ayrıntıları: geri sayımın varsayılan süresi; mesainin varsayılan hedefi ve ekran kilidi davranışı; pomodoronun odak, kısa mola, uzun mola süreleri, uzun molanın kaç odakta bir geleceği ve sonraki aşamanın kendiliğinden başlayıp başlamayacağı.
 - **Menü Çubuğu:** Süreyi ve adı göster ya da gizle, süre biçimi (`1:05:00` veya `1 sa 5 dk`), son dakikada turuncu uyarı. Değişiklikleri sayfanın üstündeki önizlemede anında görürsün.
 - **Kısayol:** Başlat/durdur tuşunu kaydet. Seçtiğin tuş başka yerde kullanılıyorsa uyarır, kaydetmez.
 - **Bildirimler:** Bitiş sesi ve bildirim izninin durumu.
 - **Geçmiş:** Aşağıda anlatılıyor.
-- **Hakkında:** Sürüm, güncelleme kontrolü ve kaynak kodu.
+- **Hakkında:** Sürüm ve kaynak kodu.
 
 ## Geçmiş
 
@@ -89,7 +95,7 @@ Bunu bir kez yaparsın. Sonraki güncellemelerde uyarı çıkmaz.
 
 ## Güncellemeler
 
-Time Bar günde bir kez GitHub'a "son sürüm hangisi?" diye sorar. Yeni sürüm varsa panelin en üstünde **Yeni sürüm var** satırı, menü çubuğu ikonunda da küçük bir nokta çıkar. **Güncelle**'ye bastığında olanlar sırasıyla şunlar:
+Time Bar 4 saatte bir GitHub'a "son sürüm hangisi?" diye sorar. Paneli açtığında da son denetimden 1 saat geçtiyse sorar. Yeni sürüm varsa panelin en üstünde **Yeni sürüm var** satırı, menü çubuğu ikonunun sağ altında da indirme rozeti çıkar. **Güncelle**'ye bastığında olanlar sırasıyla şunlar:
 
 1. Yeni sürümün zip dosyası sadece `github.com` üzerinden indirilir.
 2. Dosyanın SHA-256 özeti, GitHub'ın o dosya için yayınladığı özetle karşılaştırılır. GitHub özet vermediyse otomatik kurulum yapılmaz, Releases sayfası açılır. Özet uyuşmazsa kurulum durur ve panelde **İndir** butonu çıkar.
@@ -103,7 +109,7 @@ Time Bar günde bir kez GitHub'a "son sürüm hangisi?" diye sorar. Yeni sürüm
 | Ayarlar ve o an süren sayaç | `~/Library/Preferences/io.github.omerfarukgzr.timebar.plist` |
 | Geçmiş | `~/Library/Application Support/Time Bar/history.json` |
 
-Süren bir sayaç varken güncellersen, uygulama yeniden açıldığında sayaç kaldığı yerden devam eder. Aradan geçen birkaç saniye de sayılmış olur. Güncelleme kontrolünü **Ayarlar › Hakkında**'dan kapatabilir ya da **Şimdi denetle** ile hemen yaptırabilirsin.
+Süren bir sayaç varken güncellersen, uygulama yeniden açıldığında sayaç kaldığı yerden devam eder. Aradan geçen birkaç saniye de sayılmış olur. **Ayarlar › Genel › Güncellemeler**'de son denetimin ve bir sonrakinin ne zaman olduğunu görürsün. Otomatik denetimi oradan kapatabilir ya da **Şimdi denetle** ile hemen yaptırabilirsin.
 
 ## Gizlilik
 
@@ -176,4 +182,4 @@ MIT. Ayrıntılar [LICENSE](LICENSE) dosyasında.
 
 ---
 
-**English.** Time Bar is a macOS menu bar timer with four modes: countdown, stopwatch, a chess-clock style work shift that tracks work and breaks separately, and pomodoro. Right-clicking the menu bar icon flips the current state (work ↔ break, pause ↔ resume) or starts the mode whose icon is shown; a custom global shortcut does the same. Every finished timer is kept in a weekly history with a chart and CSV export. Install with `curl -fsSL https://raw.githubusercontent.com/omerfarukgzr/time-bar/main/install.sh | bash` or download TimeBar.zip from the latest release. Updates are checked once a day, verified by SHA-256 and never touch your settings or history. No data is collected. MIT licensed.
+**English.** Time Bar is a macOS menu bar timer with four modes: countdown, stopwatch, a chess-clock style work shift that tracks work and breaks separately, and pomodoro. Right-clicking the menu bar icon flips the current state (work ↔ break, pause ↔ resume) or starts the mode whose icon is shown; a custom global shortcut does the same. Every finished timer is kept in a weekly history with a chart and CSV export. Install with `curl -fsSL https://raw.githubusercontent.com/omerfarukgzr/time-bar/main/install.sh | bash` or download TimeBar.zip from the latest release. Updates are checked every 4 hours and when the panel opens, verified by SHA-256 and never touch your settings or history. No data is collected. MIT licensed.
